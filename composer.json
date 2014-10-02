@@ -1,0 +1,27 @@
+{
+    "name": "dcweb/dcms",
+    "description": "Groupdc CMS basic framework ",
+    "keywords": ["php","Laravel","CMS"],
+    "authors": [
+        {
+            "name": "dcweb",
+            "email": "web@groupdc.be"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "illuminate/support": "4.1.*"
+    },
+    "autoload": {
+        "classmap": [
+            "src/controllers",
+            "src/migrations",
+            "src/models"
+        ],
+        "psr-0": {
+            "Dcweb\\Dcms\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
+ 
