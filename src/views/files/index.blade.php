@@ -18,9 +18,6 @@
 				<div class="col-md-12">
 					<div class="main-content-block">
        
-       		<div class="alert alert-info">How to resize images: Right click => select "Resize"</div>
-       
-       
       <script type="text/javascript">
 
 			// This is a sample function which is called when a file is selected in CKFinder.
