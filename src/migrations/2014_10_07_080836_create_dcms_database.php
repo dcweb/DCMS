@@ -154,7 +154,7 @@ class CreateDCMSDatabase extends Migration {
 	     */
 	    Schema::create('pagetree', function($table) {
                 $table->integer('id')->nullable();
-                $table->increments('detail_id');
+                $table->integer('detail_id');
                 $table->integer('parent_id')->nullable();
                 $table->string('regio', 10)->nullable();
                 $table->integer('language_id')->nullable();
@@ -165,6 +165,7 @@ class CreateDCMSDatabase extends Migration {
                 $table->text('url')->nullable();
                 $table->text('path')->nullable();
                 $table->text('idPath')->nullable();
+                $table->primary('detail_id');
             });
 
 
@@ -175,8 +176,8 @@ class CreateDCMSDatabase extends Migration {
                 $table->string('email', 255);
                 $table->string('token', 255);
                 $table->timestamp('created_at')->default("0000-00-00 00:00:00");
-                $table->index('password_reminders_email_index');
-                $table->index('password_reminders_token_index');
+                $table->index('email','password_reminders_email_index');
+                $table->index('token','password_reminders_token_index');
             });
 
 
@@ -263,8 +264,9 @@ class CreateDCMSDatabase extends Migration {
 	     * Table: products_to_products_information
 	     */
 	    Schema::create('products_to_products_information', function($table) {
-                $table->increments('product_id');
-                $table->increments('product_information_id');
+                $table->integer('product_id');
+                $table->integer('product_information_id');
+				$table->primary(array('product_id','product_information_id'),'PK_product_info');
             });
 
 
@@ -311,7 +313,7 @@ class CreateDCMSDatabase extends Migration {
                 $table->string('username', 255);
                 $table->string('password', 255);
                 $table->string('remember_token', 255)->nullable();
-                $table->index('user_email_unique');
+                $table->unique('email','user_email_unique');
             });
 
 
@@ -338,9 +340,274 @@ class CreateDCMSDatabase extends Migration {
                 $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
                 $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
             });
+	
+		$sql_procedure = <<<SQL
+		DROP PROCEDURE IF EXISTS `recursivepage`;
+CREATE PROCEDURE `recursivepage`(IN `iRoot` int,  IN `iLevel` int, IN iLanguageID int, IN iPathString text, iURLstring text, IN iIDpath text, iSortCounter int)
+BEGIN
+	
+DECLARE irows,ichildid,iparentid,iLanguage_id, ichildcount,isortid, langdone,iCurLangID, iDetail_id, done, iLanguages INT DEFAULT 0;
+
+DECLARE cPage VARCHAR(255);
+DECLARE cUrl VARCHAR(255);
+DECLARE iRegio VARCHAR(10);
+DECLARE txtPath TEXT;
+DECLARE txtUrl TEXT;
+DECLARE idPath TEXT;
+
+DECLARE txtDivision VARCHAR(255) ;
+DECLARE txtSector VARCHAR(255);
+DECLARE txtSectorCategory VARCHAR(255);
+
+DECLARE urlDivision VARCHAR(255) ;
+DECLARE urlSector VARCHAR(255);
+DECLARE urlSectorCategory VARCHAR(255);
 
 
-         }
+SET @@SESSION.max_sp_recursion_depth=25;
+#rows : count the subcategories on this parentID only 1 layer deeper
+  SET irows = ( SELECT COUNT(*) FROM Pages WHERE parent_ID=iroot );
+
+ # if the level is set to 0 - clear the _descendants so we can start from scratch (this is a recursive function so it will pass by for fetching the deeper layers
+ 
+  IF iLevel = 0 THEN
+	IF (iLanguageID= 1)THEN 
+		DROP  TABLE IF EXISTS PageTree;
+			CREATE TABLE PageTree ( id INT , detail_id int, parent_id INT, regio varchar(10) , language_id int,   sort_id int,  page VARCHAR(255),  
+			childcount INT, 
+			level INT, 
+			url TEXT,  
+			path TEXT,  
+			idPath TEXT,
+			PRIMARY KEY (detail_id)
+			);
+	END IF;
+  END IF;
+  #end if iLevel = 0
+
+#rows how many subcategories just below this root Page
+IF irows > 0 THEN
+    BEGIN
+		DECLARE cur CURSOR FOR
+
+			SELECT  	t.id,
+				pages_detail.id,
+				t.parent_id, 
+				f.sort_id,  
+				concat(languages.language,'-',languages.country) as Regio,
+				languages.id,
+				pages_detail.title as Page,
+				pages_detail.url_slug as Path,
+
+				(SELECT COUNT(*) FROM Pages WHERE parent_ID=t.ID) AS childcount , 
+
+		case when length(iPathString) > 0 THEN  case when (length((select title from pages_Detail where page_id = f.id and language_id = languages.id limit 1))>0) then concat(iPathString , " | ", (select title from pages_Detail where page_id = f.id and language_id = languages.id limit 1)) else '' end  ELSE (select title from pages_Detail where page_id = f.id and language_id = languages.id limit 1) END as tPath, 
+
+		case when length(iURLstring) > 0 THEN  case when (length((select url_slug from pages_Detail where page_id = f.id and language_id = languages.id limit 1))>0) then concat(iURLstring, "/", (select url_slug from pages_Detail where page_id = f.id and language_id = languages.id limit 1)) else '' end ELSE case  (select url_slug from pages_Detail where page_id = f.id and language_id = languages.id limit 1) when 'INDEX' then 'INDEX' else  (select concat(languages.language,'-',languages.country,'/',url_slug) from pages_Detail where page_id = f.id and language_id = languages.id limit 1)  end  END as tUrl,
+
+		case when length(iIDpath)>0 then concat(iIDpath , ',',f.id)  else f.id end  as tIDpath
+
+		FROM pages t JOIN pages f ON t.ID=f.ID
+		inner join pages_detail on t.id= pages_detail.page_id
+		inner join languages on pages_detail.language_id = languages.id
+			WHERE t.parent_id=iroot
+		and languages.id = iLanguageID
+			ORDER BY f.sort_id asc, f.updated_at desc, childcount desc; 
+	#sortid asc
+	
+	
+		DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done = 1;
+
+      	OPEN cur;
+      	
+	select @counter := iSortcounter  ;
+
+	WHILE NOT done DO
+
+        	FETCH cur INTO 
+				ichildid,
+				iDetail_id,
+				iparentid, 
+				isortid, 
+				iRegio,
+				iLanguage_id,
+				cPage, 
+				cURL  ,
+				ichildcount,
+				txtPath, 
+				txtUrl,  
+				idPath;
+
+       		IF NOT done THEN
+					
+			select @counter := @counter + 1 ;
+			INSERT INTO PageTree VALUES(ichildid,iDetail_id,iparentid,iRegio,iLanguage_id, @counter , 
+				cPage,
+				ichildcount,
+				ilevel, 
+				txtUrl, 
+				txtPath, 
+				idPath 
+			);
+
+			update pages set sort_id = @counter where id = ichildid;
+
+       			IF ichildcount > 0 THEN
+       				CALL recursivepage( ichildid, ilevel + 1, iLanguageID,
+						txtPath, 
+						txtUrl, 
+						idPath,
+						@counter  
+				);
+
+       			END IF;
+      		END IF;
+      END WHILE;
+	
+      CLOSE cur;
+  
+    END;	
+END IF;
+
+END
+SQL;
+        DB::connection()->getPdo()->exec($sql_procedure);
+		
+$sql_procedure_recursiveproductcategory = <<<SQL
+DROP PROCEDURE IF EXISTS `recursiveproductscategory`;
+
+CREATE PROCEDURE `recursiveproductscategory`(IN `iRoot` int,  IN `iLevel` int, IN iLanguageID int, IN iPathString text, iURLstring text, IN iIDpath text, iSortCounter int)
+BEGIN
+	#Routine body goes here...
+	#http://www.artfulsoftware.com/mysqlbook/sampler/mysqled1ch20.html
+
+DECLARE irows,ichildid,iparentid,iLanguage_id, ichildcount,isortid, langdone,iCurLangID, iDetail_id, done, iLanguages INT DEFAULT 0;
+
+DECLARE cPage VARCHAR(255);
+DECLARE cUrl VARCHAR(255);
+DECLARE iRegio VARCHAR(10);
+DECLARE txtPath TEXT;
+DECLARE txtUrl TEXT;
+DECLARE idPath TEXT;
+
+DECLARE txtDivision VARCHAR(255) ;
+DECLARE txtSector VARCHAR(255);
+DECLARE txtSectorCategory VARCHAR(255);
+
+DECLARE urlDivision VARCHAR(255) ;
+DECLARE urlSector VARCHAR(255);
+DECLARE urlSectorCategory VARCHAR(255);
+
+
+
+SET @@SESSION.max_sp_recursion_depth=25;
+#rows : count the subcategories on this parentID only 1 layer deeper
+  SET irows = ( SELECT COUNT(*) FROM products_categories WHERE parent_ID=iroot );
+
+ # if the level is set to 0 - clear the _descendants so we can start from scratch (this is a recursive function so it will pass by for fetching the deeper layers
+ 
+  IF iLevel = 0 THEN
+	IF (iLanguageID= 1)THEN 
+    DROP  TABLE IF EXISTS productscategorytree;
+    CREATE TABLE productscategorytree ( id INT ,  detail_id int, parent_id INT, regio varchar(10) , language_id int,   sort_id int,  productcategory VARCHAR(255),  
+childcount INT, 
+level INT, 
+url TEXT,  
+path TEXT,  
+idPath TEXT);
+	END IF;
+  END IF;
+#end if iLevel = 0
+
+#rows how many subcategories just below this root Page
+IF irows > 0 THEN
+    BEGIN
+
+	DECLARE cur CURSOR FOR
+
+        SELECT  	t.id,	
+			products_categories_detail.id,
+			t.parent_id, 
+			f.sort_id,  
+			concat(languages.language,'-',languages.country) as Regio,
+			languages.id , 
+			products_categories_detail.title as Page,
+			products_categories_detail.url_slug as Path,
+
+			(SELECT COUNT(*) FROM products_categories WHERE parent_ID=t.ID) AS childcount , 
+
+	case when length(iPathString) > 0 THEN  case when (length((select title from products_categories_detail where product_category_id = f.id and language_id = languages.id limit 1))>0) then concat(iPathString , " | ", (select title from products_categories_detail where product_category_id = f.id and language_id = languages.id limit 1)) else '' end  ELSE (select title from products_categories_detail where product_category_id = f.id and language_id = languages.id limit 1) END as tPath, 
+
+	case when length(iURLstring) > 0 THEN  case when (length((select url_slug from products_categories_detail where product_category_id = f.id and language_id = languages.id limit 1))>0) then concat(iURLstring, "/", (select url_slug from products_categories_detail where product_category_id = f.id and language_id = languages.id limit 1)) else '' end ELSE case  (select url_slug from products_categories_detail where product_category_id = f.id and language_id = languages.id limit 1) when 'INDEX' then 'INDEX' else  (select concat(languages.language,'-',languages.country,'/',url_slug) from products_categories_detail where product_category_id = f.id and language_id = languages.id limit 1)  end  END as tUrl,
+
+	case when length(iIDpath)>0 then concat(iIDpath , ',',f.id)  else f.id end  as tIDpath
+
+	FROM products_categories t JOIN products_categories f ON t.ID=f.ID
+	inner join products_categories_detail on t.id= products_categories_detail.product_category_id
+	inner join languages on products_categories_detail.language_id = languages.id
+        WHERE t.parent_id=iroot
+	and languages.id = iLanguageID
+        ORDER BY  f.sort_id asc, f.updated_at desc, childcount desc; 
+#sortid asc
+
+      	DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done = 1;
+
+      	OPEN cur;
+      	
+	select @counter := iSortcounter  ;
+
+	WHILE NOT done DO
+
+        	FETCH cur INTO 
+				ichildid,
+				iDetail_id,
+				iparentid, 
+				isortid, 
+				iRegio,
+				iLanguage_id,
+				cPage, 
+				cURL  ,
+				ichildcount,
+				txtPath, 
+				txtUrl,  
+				idPath;
+
+
+       		IF NOT done THEN
+					
+			select @counter := @counter + 1 ;
+			INSERT INTO productscategorytree VALUES(ichildid,iDetail_id,iparentid,iRegio,iLanguage_id,@counter , 
+				cPage,
+				ichildcount,
+				ilevel, 
+				txtUrl, 
+				txtPath, 
+				idPath 
+			);
+
+			update products_categories set sort_id = @counter where id = ichildid;
+
+       			IF ichildcount > 0 THEN
+       				CALL recursiveproductscategory( ichildid, ilevel + 1, iLanguageID,
+						txtPath, 
+						txtUrl, 
+						idPath,
+						@counter  
+				);
+
+       			END IF;
+      		END IF;
+      END WHILE;
+
+      CLOSE cur;
+
+    END;	
+END IF;
+
+END
+SQL;
+		DB::connection()->getPdo()->exec($sql_procedure_recursiveproductcategory);
+       }
 
         /**
          * Reverse the migrations.
