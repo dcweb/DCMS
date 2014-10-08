@@ -42,6 +42,8 @@ class ArticleController extends BaseController {
 														'articles.id', 
 														'articles_detail.title', 
 														'articles_detail.id as detail_id',
+														
+														
 														(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 													)
 											->join('articles_detail','articles.id','=','articles_detail.article_id')
