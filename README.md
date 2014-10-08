@@ -33,3 +33,7 @@ Require this package
     - cmd: php artisan db:seed --class=DCMSTableSeeder
 
 7. make sure you have ckfinder / ckeditor installed-configured-... (or copied from your previous installs)
+
+8. find the install on:
+    - yourdomain.be/admin
+		- login with your credentials (u:admin pw:dcmsadmin)

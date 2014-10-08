@@ -1529,40 +1529,15 @@ class DCMSTableSeeder extends Seeder {
             
             array(
                 'id' => 1,
-                'email' => 'bre@groupdc.be',
-                'name' => 'Bart Reymenants',
+                'email' => 'admin@yourdomain.be',
+                'name' => 'admin',
                 'role' => 'administrator',
                 'created_at' => '2014-05-28 08:52:37',
-                'updated_at' => '2014-10-03 07:56:06',
-                'username' => 'bartr',
-                'password' => '$2y$10$p2umGwaorDU7/UakHPFiruqzZAbO0FjtEDzf37V5gJ.Rma7uK.zgS',
-                'remember_token' => '2ulH6GqmIhj1DslkxfJBlxEX8zSuTnau57U4Nkt1nL4B9xxOONYlpEa6vNPC',
+                'updated_at' => '201	4-10-03 07:56:06',
+                'username' => 'admin',
+                'password' => '$2y$10$TImTiIu70t4G6ZvTNpCroeg0rYYSMTq8G4uPjFUrizFXueN8fv9XW',
+                'remember_token' => null,
             ),
-
-            array(
-                'id' => 2,
-                'email' => 'jde@groupdc.be',
-                'name' => 'Jan Dever',
-                'role' => 'administrator',
-                'created_at' => '2014-06-25 13:24:45',
-                'updated_at' => '2014-07-11 08:12:24',
-                'username' => 'jand',
-                'password' => '$2y$10$0gPJtzDvM.bRJUrKmghx/..HQjM3Xg78.HYoiKW23TdkMstFHMMdO',
-                'remember_token' => 'enuzaMo9c0KEwd7dE3zkJHEcRWMUVipNE2IwMWrs0u1UXdJf4RnNscx41Eyr',
-            ),
-
-            array(
-                'id' => 8,
-                'email' => 'phe@groupdc.be',
-                'name' => 'Pieter',
-                'role' => 'user',
-                'created_at' => '2014-06-27 08:49:39',
-                'updated_at' => '2014-08-11 09:11:46',
-                'username' => 'pieterh',
-                'password' => '$2y$10$rjKuv2auvxvjr/sqEuKsF.E6hcrBiOS0CiEx96DFg3wZT/cJUC6YW',
-                'remember_token' => 'df64ApSjpRobFdCWfgPuKlItjFQdFiVNIc4orfnkqDDNzXfL67iyh35yJhqk',
-            ),
-
         ));
         DB::table('volumes_class')->insert(array(
             
