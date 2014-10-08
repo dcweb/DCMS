@@ -52,7 +52,7 @@ class ArticleController extends BaseController {
 								<input name="_token" type="hidden" value="'.csrf_token().'"> 
 								<input name="_method" type="hidden" value="DELETE">
 								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
-								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->id.'/copy"><i class="fa fa-copy"></i></a>
+								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->detail_id.'/copy"><i class="fa fa-copy"></i></a>
 								<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
 							</form>';})
 						->searchColumns('title')
