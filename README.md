@@ -24,13 +24,12 @@ Require this package
 		
 3. set database info
 
-4. php artisan dump-autoload
+4. cmd: php artisan dump-autoload
 
-5. php artisan asset:publish
+5. cmd: php artisan asset:publish
 
-6. php artisan migrate --package="dcweb/dcms" 
+6. cmd: php artisan migrate --package="dcweb/dcms" 
     seed the databse with dumy info: 
-    --> php artisan db:seed --class=DCMSTableSeeder
+    --> cmd: php artisan db:seed --class=DCMSTableSeeder
 
 7. make sure you have ckfinder / ckeditor installed-configured-... (or copied from your previous installs)
-       
