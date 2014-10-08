@@ -34,7 +34,6 @@ class ArticleController extends BaseController {
 	
 	public function getDatatable()
 	{
-	
 		return Datatable::Query(
 									DB::connection('project')
 											->table('articles')
@@ -42,8 +41,6 @@ class ArticleController extends BaseController {
 														'articles.id', 
 														'articles_detail.title', 
 														'articles_detail.id as detail_id',
-														
-														
 														(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 													)
 											->join('articles_detail','articles.id','=','articles_detail.article_id')
@@ -51,7 +48,9 @@ class ArticleController extends BaseController {
 		)
 		
 						->showColumns('title','country')
-						->addColumn('edit',function($model){return '<form method="POST" action="/admin/articles/'.$model->detail_id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
+						->addColumn('edit',function($model){return '<form method="POST" action="/admin/articles/'.$model->detail_id.'" accept-charset="UTF-8" class="pull-right"> 
+								<input name="_token" type="hidden" value="'.csrf_token().'"> 
+								<input name="_method" type="hidden" value="DELETE">
 								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
 								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->id.'/copy"><i class="fa fa-copy"></i></a>
 								<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
@@ -76,7 +75,6 @@ class ArticleController extends BaseController {
 					->with('categoryOptionValues',CategoryID::OptionValueArray(true));
 	}
 
-
 	/**
 	 * Store a newly created resource in storage.
 	 *
@@ -90,7 +88,6 @@ class ArticleController extends BaseController {
 		);
 		$validator = Validator::make(Input::all(), $rules);
 
-		
 		// process the validator
 		if ($validator->fails()) {
 			return Redirect::to('admin/articles/create')
@@ -242,14 +239,12 @@ class ArticleController extends BaseController {
 			$input = Input::get();
 			foreach($input["title"] as $language_id  => $title)
 			{
-				
 				if (strlen(trim($title))>0) //we don't want to populate the database when there is no title given
 				{
 					if (!isset($Article) || is_null($Article) )
 					{
 						$Article = new Article;
 					}
-
 
 					$Article->startdate = (!empty($input["startdate"]) ? DateTime::createFromFormat('d-m-Y', $input["startdate"])->format('Y-m-d') : null);
 					$Article->enddate 	= (!empty($input["enddate"]) ? DateTime::createFromFormat('d-m-Y', $input["enddate"])->format('Y-m-d') : null);
@@ -283,7 +278,6 @@ class ArticleController extends BaseController {
 			return Redirect::to('admin/articles');
 		}
 	}
-
 
 	/**
 	 * Remove the specified resource from storage.

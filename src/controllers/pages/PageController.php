@@ -50,7 +50,6 @@ class PageController extends BaseController {
 																->orderBy('language_id','asc')
 																->orderBy('sort_id','asc')
 															)
-															
 		
 						->showColumns('page','regio')
 						->addColumn('edit',function($model){return '<form method="POST" action="/admin/pages/'.$model->detail_id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
@@ -59,18 +58,6 @@ class PageController extends BaseController {
 							</form>';})
 						->searchColumns('title')
 						->make();
-		
-		/*
-		return Datatable::collection(Page::all(array('id','title')))
-											->showColumns('id', 'title')
-											->searchColumns('title')
-											->orderColumns('id','title')
-											->addColumn('edit',function($model){return '<form method="POST" action="/admin/pages/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
-								<a class="btn btn-xs btn-default" href="/admin/pages/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
-								<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
-							</form>';})
-						->searchColumns('title')
-						->make();*/
 	}
 
 
