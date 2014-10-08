@@ -39,7 +39,7 @@ class CategoryController extends BaseController {
 																	'articles_categories.id',
 																	'articles_categories_detail.title', 
 																	'articles_categories_detail.id as catid' ,
-																	(DB::connection("project")->raw('Concat("<img src=\'/images/flag-",lcase(country),".png\' >") as country'))
+																	(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 																	
 																)
 													->join('articles_categories_detail','articles_categories_detail.article_category_id','=','articles_categories.id')	

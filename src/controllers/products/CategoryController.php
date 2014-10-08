@@ -49,7 +49,7 @@ class CategoryController extends BaseController {
 																			'id', 
 																			(DB::connection("project")->raw('concat(repeat(\'-\', level),\' \',  productcategory) as productcategory')),
 																			'detail_id',
-																			(DB::connection("project")->raw('Concat("<img src=\'/images/flag-",lcase(substr(regio,4)),".png\' >") as regio'))
+																			(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(substr(regio,4)),".png\' >") as regio'))
 																		)
 																->where('id','>','0')
 																->orderBy('language_id','asc')

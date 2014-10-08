@@ -140,7 +140,7 @@ class ProductController extends BaseController {
 																								"products.eancode",
 																								"products_to_products_information.product_information_id as info_id",
 																								"title",
-																								(DB::connection("project")->raw('Concat("<img src=\'/images/flag-",lcase(country),".png\' >") as country'))
+																								(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 																						
 																								)
 																								->leftJoin('products_to_products_information','products.id','=','products_to_products_information.product_id')

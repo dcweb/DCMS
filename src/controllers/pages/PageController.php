@@ -37,23 +37,6 @@ class PageController extends BaseController {
 	
 	public function getDatatable()
 	{
-		/*
-			return Datatable::Query(
-														DB::connection('project')
-																->table('pages')
-																->select(
-																			'pages.id', 
-																			'pages_detail.title', 
-																			'pages_detail.id as detail_id',
-																			(DB::connection("project")->raw('Concat("<img src=\'/images/flag-",lcase(country),".png\' >") as country'))
-																		)
-																->join('pages_detail','pages.id','=','pages_detail.page_id')
-																->leftJoin('languages','pages_detail.language_id', '=' , 'languages.id')
-																->where('pages.id','>','0')
-																->orderBy('pages_detail.language_id','asc')
-																->orderBy('pages.sort_id','asc')
-															)*/
-			
 			return Datatable::Query(
 														DB::connection('project')
 																->table('pagetree')
@@ -61,7 +44,7 @@ class PageController extends BaseController {
 																			'id', 
 																			(DB::connection("project")->raw('concat(repeat(\'-\', level),\' \',  page) as page')),
 																			'detail_id',
-																			(DB::connection("project")->raw('Concat("<img src=\'/images/flag-",lcase(substr(regio,4)),".png\' >") as regio'))
+																			(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(substr(regio,4)),".png\' >") as regio'))
 																		)
 																->where('id','>','0')
 																->orderBy('language_id','asc')
