@@ -29,7 +29,7 @@ Require this package
 5. cmd: php artisan asset:publish
 
 6. cmd: php artisan migrate --package="dcweb/dcms" 
-    seed the databse with dumy info: 
-    --> cmd: php artisan db:seed --class=DCMSTableSeeder
+    - seed the databse with dumy info: 
+    - cmd: php artisan db:seed --class=DCMSTableSeeder
 
 7. make sure you have ckfinder / ckeditor installed-configured-... (or copied from your previous installs)
