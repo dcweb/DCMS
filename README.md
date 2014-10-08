@@ -1,5 +1,4 @@
 ## DCMS
-[![Latest Stable Version](https://poser.pugx.org/barryvdh/laravel-debugbar/version.png)](https://packagist.org/packages/dcweb/dcms)
 
 This is a package to make a basic CMS.
 We are still in development. Getting files up to date, for easy installation
@@ -13,6 +12,8 @@ Require this package
           dcweb
 
 2. app/config set:
+ 
+
 		service providers 
 			'Dcweb\Dcms\DcmsServiceProvider',
 			'Chumper\Datatable\DatatableServiceProvider',
