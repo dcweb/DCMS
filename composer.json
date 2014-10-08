@@ -9,8 +9,7 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
-        "illuminate/support": "4.1.*",				
+        "php": ">=5.3.0",		
         "chumper/datatable": "2.*",
 				"barryvdh/laravel-debugbar": "1.x"
     },
