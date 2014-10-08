@@ -14,7 +14,7 @@ use Redirect;
 use DB;
 use Datatable;
 use Auth;
-use DCMSFunctions;
+use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 class ProductController extends BaseController {
 
@@ -299,8 +299,8 @@ class ProductController extends BaseController {
 						$pInformation->language_id 	= $language_id;
 						$pInformation->sort_id 			= $input["information_sort_id"][$i];
 						$pInformation->product_category_id = ($input["information_category_id"][$i]==0?NULL:$input["information_category_id"][$i]);
-						$pInformation->url_slug 		= DCMSFunctions::SEOUrl($input["information_name"][$i]); 
-						$pInformation->url_path 		= DCMSFunctions::SEOUrl($input["information_name"][$i]); 
+						$pInformation->url_slug 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
+						$pInformation->url_path 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
 						$pInformation->admin 				=  Auth::user()->username;
 						$pInformation->save();			
 						$product->information()->attach($pInformation->id);		
@@ -516,8 +516,8 @@ class ProductController extends BaseController {
 							$pInformation->sort_id 			= $input["information_sort_id"][$i];
 							$pInformation->language_id 	= $language_id;
 							$pInformation->product_category_id = ($input["information_category_id"][$i]==0?NULL:$input["information_category_id"][$i]);
-							$pInformation->url_slug = DCMSFunctions::SEOUrl($input["information_name"][$i]); 
-							$pInformation->url_path = DCMSFunctions::SEOUrl($input["information_name"][$i]); 
+							$pInformation->url_slug = SEOHelpers::SEOUrl($input["information_name"][$i]); 
+							$pInformation->url_path = SEOHelpers::SEOUrl($input["information_name"][$i]); 
 							$pInformation->admin 				=  Auth::user()->username;
 							$pInformation->save();	
 							$Product->information()->attach($pInformation->id);			

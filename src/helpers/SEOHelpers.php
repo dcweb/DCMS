@@ -2,6 +2,8 @@
 
 namespace Dcweb\Dcms\Helpers\Helper;
 
+//http://amitavroy.com/justread/content/articles/working-workbench-and-building-packages-laravel-4
+
 class SEOHelpers
 {		
 		/* SEOURL

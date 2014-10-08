@@ -18,7 +18,7 @@ use DB;
 use Datatable;
 use Auth;
 use DateTime;
-use DCMSFunctions;
+use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 
 class PageController extends BaseController {
@@ -160,8 +160,8 @@ class PageController extends BaseController {
 					$Detail->title 					= $input["title"][$language_id];
 					$Detail->body 					= $input["body"][$language_id];
 					
-					$Detail->url_slug = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
-					$Detail->url_path = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					
 					$Detail->admin 				= Auth::user()->username;
 					$Detail->save();		
@@ -261,8 +261,8 @@ class PageController extends BaseController {
 					$Detail->title 					= $input["title"][$language_id];
 					$Detail->body 					= $input["body"][$language_id];
 				
-					$Detail->url_slug = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
-					$Detail->url_path = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					
 					$Detail->admin 					=  Auth::user()->username;
 					$Detail->save();	
@@ -289,7 +289,14 @@ class PageController extends BaseController {
 	{
 		// delete
 		$Detail = Detail::find($id);
+		$mainPageID = $Detail->page_id;
+		
 		$Detail->delete();
+		
+		if (Detail::where("page_id","=",$mainPageID)->count() <= 0)
+		{
+			Page::destroy($mainPageID);
+		}
 		
 		$this->generatePageTree();
 

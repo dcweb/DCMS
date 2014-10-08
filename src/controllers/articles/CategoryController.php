@@ -13,7 +13,7 @@ use Redirect;
 use DB;
 use Datatable;
 use Auth;
-use DCMSFunctions;
+use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 
 class CategoryController extends BaseController {
@@ -110,8 +110,8 @@ class CategoryController extends BaseController {
 							$translatedCategory->title = $input["title"][$language_id];// Input::get('langtitle.1');
 							$translatedCategory->language_id = $language_id;
 							
-							$translatedCategory->url_slug = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
-							$translatedCategory->url_path = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
+							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
 							$translatedCategory->admin =  Auth::user()->username;
 							$translatedCategory->save();			
@@ -222,8 +222,8 @@ class CategoryController extends BaseController {
 							$translatedCategory->title = $input["title"][$language_id];// Input::get('langtitle.1');
 							$translatedCategory->language_id = $language_id;
 							
-							$translatedCategory->url_slug = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
-							$translatedCategory->url_path = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
+							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
 							$translatedCategory->admin =  Auth::user()->username;
 							$translatedCategory->save();			

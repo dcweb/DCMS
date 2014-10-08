@@ -15,7 +15,7 @@ use DB;
 use Datatable;
 use Auth;
 use DateTime;
-use DCMSFunctions;
+use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 
 class ArticleController extends BaseController {
@@ -28,7 +28,7 @@ class ArticleController extends BaseController {
 	public function index()
 	{
 		// load the view 
-		return View::make('dcms::articles/articles/index');
+			return View::make('dcms::articles/articles/index');
 	}
 	
 	
@@ -123,8 +123,8 @@ class ArticleController extends BaseController {
 					$Detail->description 	= $input["description"][$language_id];
 					$Detail->body 					= $input["body"][$language_id];
 					
-					$Detail->url_slug = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
-					$Detail->url_path = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					
 					$Detail->admin 				= Auth::user()->username;
 					$Detail->save();		
@@ -267,8 +267,8 @@ class ArticleController extends BaseController {
 					$Detail->description 					= $input["description"][$language_id];
 					$Detail->body 								= $input["body"][$language_id];
 				
-					$Detail->url_slug = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
-					$Detail->url_path = DCMSFunctions::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					
 					$Detail->admin 								=  Auth::user()->username;
 					$Detail->save();	
@@ -293,12 +293,18 @@ class ArticleController extends BaseController {
 	{
 		// delete
 		$Detail = Detail::find($id);
+		
+		$mainArticleID = $Detail->article_id;
+		
 		$Detail->delete();
-
+		
+		if (Detail::where("article_id","=",$mainArticleID)->count() <= 0)
+		{
+			Article::destroy($mainArticleID);
+		}
+		
 		// redirect
 		Session::flash('message', 'Successfully deleted the article!');
 		return Redirect::to('admin/articles');
 	}
-
-
 }

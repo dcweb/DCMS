@@ -18,7 +18,8 @@
         "classmap": [
             "src/controllers",
             "src/migrations",
-			"src/seeds",
+						"src/helpers",
+						"src/seeds",
             "src/models"
         ],
         "psr-0": {
