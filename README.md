@@ -23,6 +23,8 @@ Require this package
 			'Datatable' => 'Chumper\Datatable\Facades\DatatableFacade',
 		
 3. set database info
+	- admin (connection: for zipcodes)
+	- project (your backend database)
 
 4. cmd: php artisan dump-autoload
 
