@@ -137,8 +137,8 @@ class ProductController extends BaseController {
 																								"products.eancode",
 																								"products_to_products_information.product_information_id as info_id",
 																								"title",
-																								//Concat("<img src=\'http://localhost:8080/localhost/gdc_4x/public/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' > ",title) as country,
-																								(DB::connection("project")->raw('(select Concat("<img src=\'http://localhost:8080/localhost/gdc_4x/public/packages/dcweb/dcms/assets/images/flag-",lcase(countries.country ),".png\' >") from products_price left join countries on countries.id = products_price.country_id where products_price.country_id = languages.country_id and products_price.product_id = products.id limit 1) as country'))
+																								//Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' > ",title) as country,
+																								(DB::connection("project")->raw('(select Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(countries.country ),".png\' >") from products_price left join countries on countries.id = products_price.country_id where products_price.country_id = languages.country_id and products_price.product_id = products.id limit 1) as country'))
 																								)
 																								->leftJoin('products_to_products_information','products.id','=','products_to_products_information.product_id')
 																								->leftJoin('products_information','products_information.id','=','products_to_products_information.product_information_id')
@@ -148,10 +148,10 @@ class ProductController extends BaseController {
 						->showColumns('eancode')
 						->showColumns('title')
 						->showColumns('country')
-						->addColumn('edit',function($model){return '<form method="POST" action="http://localhost:8080/localhost/gdc_4x/public/admin/products/'.(isset($model->info_id)?$model->info_id:$model->id).'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
+						->addColumn('edit',function($model){return '<form method="POST" action="/admin/products/'.(isset($model->info_id)?$model->info_id:$model->id).'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
 						<input type="hidden" name="table" value="'.(isset($model->info_id)?"information":"product").'"/>
-								<a class="btn btn-xs btn-default" href="http://localhost:8080/localhost/gdc_4x/public/admin/products/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
-								<a class="btn btn-xs btn-default" href="http://localhost:8080/localhost/gdc_4x/public/admin/products/'.$model->id.'/copy"><i class="fa fa-copy"></i></a>
+								<a class="btn btn-xs btn-default" href="/admin/products/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
+								<a class="btn btn-xs btn-default" href="/admin/products/'.$model->id.'/copy"><i class="fa fa-copy"></i></a>
 								<button class="btn btn-xs btn-default" type="submit" value="Delete this product category" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
 							</form>';})
 						->setSearchWithAlias()
