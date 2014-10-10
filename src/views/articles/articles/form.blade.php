@@ -25,7 +25,6 @@
 
     	<div class="row">
 		@if (!is_array($categoryOptionValues) || count($categoryOptionValues)<=0 ) 	Please first create a <a href="{{ URL::to('admin/articles/categories/create') }}"> article category </a>  @else
-
 				<div class="col-md-9">
 					<div class="main-content-block">
              

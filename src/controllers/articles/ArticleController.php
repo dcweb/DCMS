@@ -72,7 +72,7 @@ class ArticleController extends BaseController {
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::articles/articles/form')
 					->with('languages',$languages)
-					->with('categoryOptionValues',CategoryID::OptionValueArray(true));
+					->with('categoryOptionValues',CategoryID::OptionValueArray(false));
 	}
 
 	/**
@@ -189,7 +189,7 @@ class ArticleController extends BaseController {
 			return View::make('dcms::articles/articles/form')
 				->with('article', $article)
 				->with('languages', $languages)
-				->with('categoryOptionValues',CategoryID::OptionValueArray(true));;
+				->with('categoryOptionValues',CategoryID::OptionValueArray(false));;
 	}
 	
 	
