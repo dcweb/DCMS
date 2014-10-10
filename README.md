@@ -29,7 +29,7 @@ Require this package
 5. cmd: php artisan asset:publish
 
 6. cmd: php artisan migrate --package="dcweb/dcms" 
-    - seed the databse with dumy info: 
+    - seed the databse with dumy info - this will help you're project launched since some items are needed: 
     - cmd: php artisan db:seed --class=DCMSTableSeeder
 
 7. make sure you have ckfinder / ckeditor installed-configured-... (or copied from your previous installs)
@@ -37,3 +37,8 @@ Require this package
 8. find the install on:
     - yourdomain.be/admin
 		- login with your credentials (u:admin pw:dcmsadmin)
+		
+the dealers module needs an extra database 'admin' which holds global content i.e. zipcode of countries etc.
+
+##TO DO
+1. userlogin should go to 'admin' database where rights could be managed

@@ -24,9 +24,11 @@
     @endif
 
     	<div class="row">
+		@if (!is_array($categoryOptionValues) || count($categoryOptionValues)<=0 ) 	Please first create a <a href="{{ URL::to('admin/articles/categories/create') }}"> article category </a>  @else
+
 				<div class="col-md-9">
 					<div class="main-content-block">
-              
+             
               @if($errors->any())
                 <div class="alert alert-danger">{{ HTML::ul($errors->all()) }}</div>
               @endif
@@ -48,7 +50,7 @@
                                                     
                       <div class="form-group">
                         {{ Form::label('category_id[' . $information->language_id . ']', 'Category') }}
-                        {{ Form::select('category_id[' . $information->language_id . ']', $categoryOptionValues[$information->language_id], (Input::old('category_id[' . $information->language_id . ']') ? Input::old('category_id[' . $information->language_id . ']') : $information->article_category_id), array('class' => 'form-control')) }}
+                        {{ isset($categoryOptionValues[$information->language_id])? Form::select('category_id[' . $information->language_id . ']', $categoryOptionValues[$information->language_id], (Input::old('category_id[' . $information->language_id . ']') ? Input::old('category_id[' . $information->language_id . ']') : $information->article_category_id), array('class' => 'form-control')):'No categories found' }}
                       </div>
                                                     
                       <div class="form-group">
@@ -112,6 +114,7 @@
 						</div>
           
         </div>
+		@endif
       </div>
 
       {{ Form::close() }}

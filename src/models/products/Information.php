@@ -6,17 +6,8 @@ use Eloquent;
 	class Information extends Eloquent
 	{
 		protected $connection = 'project';
-		
 		protected $table  = "products_information";
-		
-    protected $fillable = array('language_id', 'title', 'description');
-		
-		/*
-		public function products()
-    {
-        return $this->belongsToMany('\Dcweb\Dcms\Models\Products\Product', 'products_to_products_information', 'product_information_id', 'product_id');
-    }*/
-		
+		protected $fillable = array('language_id', 'title', 'description');
 		
 		public function products()
     {

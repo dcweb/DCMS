@@ -9,6 +9,8 @@ use Dcweb\Dcms\Models\Languages\Language;
 
 use Dcweb\Dcms\Controllers\BaseController;
 
+use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
+
 use View;
 use Input;
 use Session;
@@ -18,7 +20,7 @@ use DB;
 use Datatable;
 use Auth;
 use DateTime;
-use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
+use Config;
 
 
 class PageController extends BaseController {
@@ -80,9 +82,21 @@ class PageController extends BaseController {
 	public function generatePageTree()
 	{
 		$Languages = Language::all();
+		$mysqli = new \mysqli(Config::get("database.connections.project.host"), Config::get("database.connections.project.username"), Config::get("database.connections.project.password"), Config::get("database.connections.project.database"));
+		
 		foreach($Languages as $Lang)
 		{
-			DB::connection("project")->statement(DB::connection("project")->raw('CALL recursivepage(0,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
+		//	DB::connection("project")->statement(DB::connection("project")->raw('CALL recursivepage(0,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
+			
+			if (!$mysqli->multi_query('CALL recursivepage(0,0,'.$Lang->id.',\'\',\'\',\'\',0);')) {
+					echo "CALL failed: (" . $mysqli->errno . ") " . $mysqli->error;
+			}
+			
+			do {
+						if ($res = $mysqli->store_result()) {
+								$res->free();
+						} 
+				} while ($mysqli->more_results() && $mysqli->next_result());
 		}
 	}
 
@@ -274,6 +288,4 @@ class PageController extends BaseController {
 		Session::flash('message', 'Successfully deleted the page!');
 		return Redirect::to('admin/pages');
 	}
-
-
 }

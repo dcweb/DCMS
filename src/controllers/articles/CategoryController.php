@@ -249,7 +249,14 @@ class CategoryController extends BaseController {
 	{
 		// delete
 		$category = Category::find($id);
+		$mainCategoryID = $category->article_category_id;
 		$category->delete();
+		
+		if (Category::where("article_category_id","=",$mainCategoryID)->count() <= 0)
+		{
+			CategoryID::destroy($mainCategoryID);
+		}
+		
 
 		// redirect
 		Session::flash('message', 'Successfully deleted the category!');

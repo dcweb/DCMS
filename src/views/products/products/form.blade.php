@@ -27,6 +27,7 @@
             @endif
 
             <div class="main-content-tab tab-container">
+            @if (!is_array($categoryOptionValues) || count($categoryOptionValues)<=0 ) 	Please first create a <a href="{{ URL::to('admin/products/categories/create') }}"> product category </a>  @else
                 <ul class="nav nav-tabs" role="tablist">
                   <li class="active"><a href="#data" role="tab" data-toggle="tab">Data</a></li>
                   <li><a href="#information" role="tab" data-toggle="tab">Information</a></li>
@@ -105,7 +106,7 @@
                                                             
                               <div class="form-group">
                                 {{ Form::label('information_category_id[' . $key . ']', 'Category') }}
-                                {{ Form::select('information_category_id[' . $key . ']', $categoryOptionValues[$information->language_id], (Input::old('information_category_id[' . $key . ']') ? Input::old('information_category_id[' . $key . ']') : $information->product_category_id), array('class' => 'form-control')) }}
+                                {{ isset($categoryOptionValues[$information->language_id])? Form::select('information_category_id[' . $key . ']', $categoryOptionValues[$information->language_id], (Input::old('information_category_id[' . $key . ']') ? Input::old('information_category_id[' . $key . ']') : $information->product_category_id), array('class' => 'form-control')):'' }}
                               </div>   
                               
                                         
@@ -183,6 +184,7 @@
     							{{ Form::submit('Save', array('class' => 'btn btn-primary')) }}
    							 	<a href="{{ URL::previous() }}" class="btn btn-default">Cancel</a>
   						</div><!-- end tab-content -->
+               @endif
             </div><!-- end main-content-tab -->
   
 					{{ Form::close() }}

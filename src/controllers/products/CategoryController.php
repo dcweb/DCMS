@@ -6,7 +6,11 @@ use Dcweb\Dcms\Models\Products\CategoryID;
 use Dcweb\Dcms\Models\Products\Categorytree;
 use Dcweb\Dcms\Models\Products\Category;
 use Dcweb\Dcms\Models\Languages\Language;
+
 use Dcweb\Dcms\Controllers\BaseController;
+
+use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
+
 use View;
 use Input;
 use Session;
@@ -15,8 +19,7 @@ use Redirect;
 use DB;
 use Datatable;
 use Auth;
-use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
-
+use Config;
 
 class CategoryController extends BaseController {
 
@@ -27,7 +30,6 @@ class CategoryController extends BaseController {
 	 */
 	public function index()
 	{
-		
 		// load the view and pass the categories
 		return View::make('dcms::products/categories/index');
 	}
@@ -35,13 +37,6 @@ class CategoryController extends BaseController {
 	
 	public function getDatatable()
 	{
-		/*	return Datatable::Query(	DB::connection("project")
-																						->table("products_categories")
-																						->select("products_categories.id","products_categories_detail.title", "products_categories_detail.id as catid" )
-																						->join('products_categories_detail','products_categories_detail.product_category_id','=','products_categories.id')
-																						->where("products_categories.id",">","0")	)
-			*/																			
-																						
 			return Datatable::Query(
 														DB::connection('project')
 																->table('productscategorytree')
@@ -85,9 +80,17 @@ class CategoryController extends BaseController {
 	public function generatePageTree()
 	{
 		$Languages = Language::all();
+		$mysqli = new \mysqli(Config::get("database.connections.project.host"), Config::get("database.connections.project.username"), Config::get("database.connections.project.password"), Config::get("database.connections.project.database"));
 		foreach($Languages as $Lang)
-		{
-			DB::connection("project")->statement(DB::connection("project")->raw('CALL recursiveproductscategory(0,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
+		{	
+			//DB::connection("project")->statement(DB::connection("project")->raw('CALL recursiveproductscategory(0,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
+			
+			$mysqli->multi_query('CALL recursiveproductscategory(0,0,'.$Lang->id.',\'\',\'\',\'\',0);');
+			do {
+						if ($res = $mysqli->store_result()) {
+								$res->free();
+						} 
+				} while ($mysqli->more_results() && $mysqli->next_result());
 		}
 	}
 
@@ -278,7 +281,13 @@ class CategoryController extends BaseController {
 	{
 		// delete
 		$category = Category::find($id);
+		$mainCategoryID = $category->product_category_id;
 		$category->delete();
+		
+		if (Category::where("product_category_id","=",$mainCategoryID)->count() <= 0)
+		{
+			CategoryID::destroy($mainCategoryID);
+		}
 
 		$this->generatePageTree();
 			
