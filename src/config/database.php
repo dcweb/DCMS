@@ -45,7 +45,10 @@ return array(
 	*/
 
 	'connections' => array(
-
+		// settings can go in app/config/database.php
+		//Uncomment if you want these settings in your package
+		//
+/*
 		'admin' => array(
 				'driver'    => 'mysql',
 				'host'      => 'localhost',
@@ -66,7 +69,7 @@ return array(
 				'collation' => 'utf8_unicode_ci',
 				'prefix'    => '',
 		),
-
+*/
 	),
 
 	/*
