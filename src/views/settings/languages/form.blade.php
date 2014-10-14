@@ -18,12 +18,6 @@
 
     <div class="main-content">
 
-    @if(isset($Language))
-        {{ Form::model($Language, array('route' => array('admin.settings.languages.update', $Language->id), 'method' => 'PUT')) }}
-    @else
-        {{ Form::open(array('url' => 'admin/settings/languages')) }}
-    @endif
-
     	<div class="row">
 		@if (!is_array($countryOptionValues) || count($countryOptionValues)<=0 ) 	Please first create a <a href="{{ URL::to('admin/settings/countries/create') }}"> Country </a>  @else
 				<div class="col-md-12">

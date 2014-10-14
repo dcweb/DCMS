@@ -21,7 +21,7 @@ use Auth;
 use DateTime;
 use Request;
 use Route;
-use BaseController;
+use Dcweb\Dcms\Controllers\BaseController;
 
 class LanguageController extends BaseController {
 	/**

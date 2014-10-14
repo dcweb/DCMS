@@ -13,7 +13,7 @@ use DB;
 use Datatable;
 use Auth;
 use DateTime;
-use BaseController;
+use Dcweb\Dcms\Controllers\BaseController;
 
 class CountryController extends BaseController {
 	/**

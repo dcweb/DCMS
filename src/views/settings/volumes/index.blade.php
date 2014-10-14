@@ -3,11 +3,11 @@
 @section("content")
 
     <div class="main-header">
-      <h1>Languages</h1>
+      <h1>Articles</h1>
       <ol class="breadcrumb">
         <li><a href="{{ URL::to('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-        <li><a href="{{ URL::to('admin/settings') }}"> settings</a></li>
-        <li class="active"><i class="fa fa-pencil"></i> Languages</li>
+        <li><a href="{{ URL::to('admin/settings') }}">Settings</a></li>
+        <li class="active"><i class="fa fa-pencil"></i> Volumes</li>
       </ol>
     </div>
 
@@ -20,16 +20,17 @@
     <div class="alert alert-info">{{ Session::get('message') }}</div>
   @endif
 
-    <div class="btnbar btnbar-right"><a class="btn btn-small btn-primary" href="{{ URL::to('/admin/settings/languages/create') }}">Create new</a></div>
+    <div class="btnbar btnbar-right"><a class="btn btn-small btn-primary" href="{{ URL::to('/admin/settings/volumes/create') }}">Create new</a></div>
 
     <h2>Overview</h2>
 
  {{ Datatable::table()
     ->setId('datatable')
-    ->addColumn('Language')
+    ->addColumn('Short')
+    ->addColumn('Volume')
     ->addColumn('Country')
 		->addColumn('')
-    ->setUrl(route('admin/settings/languages/api/table'))
+    ->setUrl(route('admin/settings/volumes/api/table'))
     ->setOptions(array(
         'pageLength' => 50,
         ))

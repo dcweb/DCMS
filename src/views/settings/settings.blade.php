@@ -17,6 +17,8 @@
 						<ul>
             <li><a href="{{ URL::to('admin/settings/countries') }}" >Countries</a></li>
             <li><a href="{{ URL::to('admin/settings/languages') }}" >Languages</a></li>
+            <li><a href="{{ URL::to('admin/settings/taxes') }}" >Tax Classes</a></li>
+            <li><a href="{{ URL::to('admin/settings/volumes') }}" >Volume Classes</a></li>
             </ul>
 	      	</div>
       	</div>

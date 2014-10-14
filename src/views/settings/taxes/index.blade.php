@@ -7,7 +7,7 @@
       <ol class="breadcrumb">
         <li><a href="{{ URL::to('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
         <li><a href="{{ URL::to('admin/settings') }}"> settings</a></li>
-        <li class="active"><i class="fa fa-pencil"></i> Languages</li>
+        <li class="active"><i class="fa fa-pencil"></i> Taxes</li>
       </ol>
     </div>
 
@@ -20,16 +20,15 @@
     <div class="alert alert-info">{{ Session::get('message') }}</div>
   @endif
 
-    <div class="btnbar btnbar-right"><a class="btn btn-small btn-primary" href="{{ URL::to('/admin/settings/languages/create') }}">Create new</a></div>
+    <div class="btnbar btnbar-right"><a class="btn btn-small btn-primary" href="{{ URL::to('/admin/settings/taxes/create') }}">Create new</a></div>
 
     <h2>Overview</h2>
 
  {{ Datatable::table()
     ->setId('datatable')
-    ->addColumn('Language')
-    ->addColumn('Country')
+    ->addColumn('Tax_class')
 		->addColumn('')
-    ->setUrl(route('admin/settings/languages/api/table'))
+    ->setUrl(route('admin/settings/taxes/api/table'))
     ->setOptions(array(
         'pageLength' => 50,
         ))

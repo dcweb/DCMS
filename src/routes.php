@@ -61,6 +61,18 @@ Route::group( array("prefix" => "admin"), function() {
 				Route::any('api/table', array('as'=>'admin/settings/languages/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\LanguageController@getDatatable'));
 			});
 			Route::resource('languages','Dcweb\Dcms\Controllers\Settings\LanguageController');
+			
+			//TAXES
+			Route::group(array("prefix" => "taxes"), function() {
+				Route::any('api/table', array('as'=>'admin/settings/taxes/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\TaxController@getDatatable'));
+			});
+			Route::resource('taxes','Dcweb\Dcms\Controllers\Settings\TaxController');
+
+			//VOLUMES
+			Route::group(array("prefix" => "volumes"), function() {
+				Route::any('api/table', array('as'=>'admin/settings/volumes/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\VolumeController@getDatatable'));
+			});
+			Route::resource('volumes','Dcweb\Dcms\Controllers\Settings\VolumeController');
 		});
 		Route::any('settings','Dcweb\Dcms\Controllers\Settings\SettingController@index');		
 
