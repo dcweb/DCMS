@@ -47,6 +47,23 @@ Route::group( array("prefix" => "admin"), function() {
 
 		//DASHBOARD - CMS HOME
 		Route::any("dashboard", array( "as" => "admin/dashboard", "uses" => "Dcweb\Dcms\Controllers\Dashboard\DashboardController@dashboard"));
+
+		//SETTINGS - SET UP EXTRA LANGUAGES
+		Route::group( array("prefix" => "settings"), function() {
+			//COUNTRIES
+			Route::group(array("prefix" => "countries"), function() {
+				Route::any('api/table', array('as'=>'admin/settings/countries/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\CountryController@getDatatable'));
+			});
+			Route::resource('countries','Dcweb\Dcms\Controllers\Settings\CountryController');
+			
+			//LANGUAGES
+			Route::group(array("prefix" => "languages"), function() {
+				Route::any('api/table', array('as'=>'admin/settings/languages/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\LanguageController@getDatatable'));
+			});
+			Route::resource('languages','Dcweb\Dcms\Controllers\Settings\LanguageController');
+		});
+		Route::any('settings','Dcweb\Dcms\Controllers\Settings\SettingController@index');		
+
 		
 		//PROFILE
 		Route::any("profile", array( "as" => "admin/users/profile", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@profile"));
@@ -82,6 +99,7 @@ Route::group( array("prefix" => "admin"), function() {
 		//PRODUCTS
 		Route::group( array("prefix" => "products"), function() {
 			//CATEGORIES
+			Route::get('categories/generatetree', array('as'=>'admin/products/categories/generatetree', 'uses' => 'Dcweb\Dcms\Controllers\Products\CategoryController@generateCategoryTree'));
 			Route::resource('categories','Dcweb\Dcms\Controllers\Products\CategoryController');
 			Route::get('categories/{id}/copy', array('as'=>'admin/products/categories/{id}/copy', 'uses' => 'Dcweb\Dcms\Controllers\Products\CategoryController@copy'));
 			Route::any('categories/api/table', array('as'=>'admin/products/categories/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Products\CategoryController@getDatatable'));

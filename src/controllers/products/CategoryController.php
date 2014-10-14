@@ -77,7 +77,7 @@ class CategoryController extends BaseController {
 			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true));
 	}
 
-	public function generatePageTree()
+	public function generateCategoryTree()
 	{
 		$Languages = Language::all();
 		$mysqli = new \mysqli(Config::get("database.connections.project.host"), Config::get("database.connections.project.username"), Config::get("database.connections.project.password"), Config::get("database.connections.project.database"));
@@ -145,7 +145,7 @@ class CategoryController extends BaseController {
 				}//end foreach
 			}//end if isset(langtitle)
 			
-			$this->generatePageTree();
+			$this->generateCategoryTree();
 			
 			// redirect
 			Session::flash('message', 'Successfully created category!');
@@ -263,7 +263,7 @@ class CategoryController extends BaseController {
 				}//end foreach
 			}//end if isset(langtitle)
 			
-			$this->generatePageTree();
+			$this->generateCategoryTree();
 			
 			// redirect
 			Session::flash('message', 'Successfully updated category!');
@@ -289,7 +289,7 @@ class CategoryController extends BaseController {
 			CategoryID::destroy($mainCategoryID);
 		}
 
-		$this->generatePageTree();
+		$this->generateCategoryTree();
 			
 		// redirect
 		Session::flash('message', 'Successfully deleted the category!');

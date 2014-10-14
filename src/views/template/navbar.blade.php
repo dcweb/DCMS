@@ -6,7 +6,7 @@
   <div class="navbar-collapse collapse">
 @unless (Auth::user()->role !== 'administrator')
     <ul class="nav navbar-nav">
-      <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
+      <li><a href="{{ URL::to('admin/settings') }}"><i class="fa fa-cog"></i> Settings</a></li>
       <li><a href="{{ URL::to('admin/users') }}"><i class="fa fa-user"></i> Users</a></li>
     </ul>
 @endunless
