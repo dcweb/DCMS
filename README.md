@@ -31,12 +31,12 @@ Require this package
 5. cmd: php artisan asset:publish
 
 6. cmd: php artisan migrate --package="dcweb/dcms" 
+
+7. cmd: php artisan db:seed --class=DCMSTableSeeder
     - seed the databse with dumy info - this will help you're project launched since some items are needed: 
-    - cmd: php artisan db:seed --class=DCMSTableSeeder
+8. make sure you have ckfinder / ckeditor installed-configured-... (or copied from your previous installs)
 
-7. make sure you have ckfinder / ckeditor installed-configured-... (or copied from your previous installs)
-
-8. find the install on:
+9. find the install on:
     - yourdomain.be/admin
 		- login with your credentials (u:admin pw:dcmsadmin)
 		
