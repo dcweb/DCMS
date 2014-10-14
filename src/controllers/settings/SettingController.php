@@ -11,6 +11,7 @@ use DB;
 use Datatable;
 use Auth;
 use DateTime;
+use BaseController;
 
 class SettingController extends BaseController {
 			/**
