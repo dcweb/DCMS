@@ -6,7 +6,14 @@
   <div class="navbar-collapse collapse">
 @unless (Auth::user()->role !== 'administrator')
     <ul class="nav navbar-nav">
-      <li><a href="{{ URL::to('admin/settings') }}"><i class="fa fa-cog"></i> Settings</a></li>
+      <li class="dropdown"><a href="{{ URL::to('admin/settings') }}"><i class="fa fa-cog"></i> Settings</a>
+          <ul class="dropdown-menu">
+              <li><a href="{{ URL::to('admin/settings/countries') }}" >Countries</a></li>
+              <li><a href="{{ URL::to('admin/settings/languages') }}" >Languages</a></li>
+              <li><a href="{{ URL::to('admin/settings/taxes') }}" >Tax Classes</a></li>
+              <li><a href="{{ URL::to('admin/settings/volumes') }}" >Volume Classes</a></li>
+         	</ul>
+      </li>
       <li><a href="{{ URL::to('admin/users') }}"><i class="fa fa-user"></i> Users</a></li>
     </ul>
 @endunless

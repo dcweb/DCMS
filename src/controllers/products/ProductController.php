@@ -136,9 +136,13 @@ class ProductController extends BaseController {
 																								"products.code", 
 																								"products.eancode",
 																								"products_to_products_information.product_information_id as info_id",
-																								"title",
+																								"title",																								
 																								//Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' > ",title) as country,
-																								(DB::connection("project")->raw('(select Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(countries.country ),".png\' >") from products_price left join countries on countries.id = products_price.country_id where products_price.country_id = languages.country_id and products_price.product_id = products.id limit 1) as country'))
+																								(DB::connection("project")->raw('(select group_concat(DISTINCT cast(  concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-", lcase(countries.country),".png\' >") as char(255)) SEPARATOR \'  \' ) 
+from products_price 
+left join countries on products_price.country_id = countries.id 
+where  product_id = products.id 
+group by product_id)  as country'))
 																								)
 																								->leftJoin('products_to_products_information','products.id','=','products_to_products_information.product_id')
 																								->leftJoin('products_information','products_information.id','=','products_to_products_information.product_information_id')

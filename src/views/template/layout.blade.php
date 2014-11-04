@@ -27,6 +27,11 @@ $(document).ready(function() {
 		$(this).closest(".dropdown").toggleClass("open");
 		return false;
 	});
+	
+	$(".navbar .dropdown > a").click(function() {
+		$(this).closest(".dropdown").toggleClass("open");
+		return false;
+	});
 
 	$("#sidebar-collapse").click(function() {
 		$(".main-wrapper").toggleClass("sidebar-collapsed");
