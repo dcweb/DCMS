@@ -130,23 +130,70 @@ class ProductController extends BaseController {
 	 */
 	public function getDatatable()
 	{
+		/* 		FULL QUERY
+		//--------------------
+				select 
+				`products`.`id`, 
+				`products`.`code`, 
+				`products`.`eancode`, 
+				`products_to_products_information`.`product_information_id` as `info_id`, 
+				`products_information`.`title`, 
+				
+				concat("<img src='/packages/dcweb/dcms/assets/images/flag-", lcase(settings.country),".png' >") as country_settings,
+				concat("<img src='/packages/dcweb/dcms/assets/images/flag-", lcase(selling.country),".png' >",title) as country_selling,
+				
+					(	select group_concat(DISTINCT cast(  concat("<img src='/packages/dcweb/dcms/assets/images/flag-", lcase(countries.country),".png' >") as char(255)) SEPARATOR '  ' ) 
+						from products_price 
+						left join countries on products_price.country_id = countries.id 
+						where  products_price.product_id = products.id 
+						group by product_id)  as all_selling_countries
+				
+				from `products` 
+				left join `products_to_products_information` on `products`.`id` = `products_to_products_information`.`product_id` 
+				left join `products_information` on `products_information`.`id` = `products_to_products_information`.`product_information_id` 
+				left join `languages` on `products_information`.`language_id` = `languages`.`id` 
+				left join products_price on products_price.product_id = products.id and products_price.country_id = languages.country_id
+				left join countries as selling on products_price.country_id = selling.id
+				left join countries as settings on languages.country_id = settings.id
+				
+				order by `code` asc 
+				limit 50;
+		*/
+		
 				return Datatable::Query(
 																	DB::connection("project")->table("products")->select(
 																								"products.id", 
 																								"products.code", 
 																								"products.eancode",
 																								"products_to_products_information.product_information_id as info_id",
-																								"title",																								
+																								"title",
+																								//(DB::connection("project")->raw("concat(\"<img src='/packages/dcweb/dcms/assets/images/flag-\", lcase(selling.country),\".png' > \",title) as title")) ,//the title with its country
+																							
+																								(DB::connection("project")->raw("concat(\"<img src='/packages/dcweb/dcms/assets/images/flag-\", lcase(selling.country),\".png' > \") as country")) 
+
 																								//Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' > ",title) as country,
-																								(DB::connection("project")->raw('(select group_concat(DISTINCT cast(  concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-", lcase(countries.country),".png\' >") as char(255)) SEPARATOR \'  \' ) 
+																								/*
+																								(DB::connection("project")->raw('(select group_concat(DISTINCT cast(  concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-", lcase(countries.country),".png\' >") as char(255)) order by countries.country asc SEPARATOR \'  \' ) 
 from products_price 
 left join countries on products_price.country_id = countries.id 
 where  product_id = products.id 
-group by product_id)  as country'))
+group by product_id)  as country')) // all countries where this is for sale*/
 																								)
 																								->leftJoin('products_to_products_information','products.id','=','products_to_products_information.product_id')
 																								->leftJoin('products_information','products_information.id','=','products_to_products_information.product_information_id')
 																								->leftJoin('languages','products_information.language_id', '=' , 'languages.id')
+																								->leftJoin('products_price', function($join){
+																										 $join->on('products_price.product_id', '=', 'products.id');
+																										 $join->on('products_price.country_id', '=', 'languages.country_id');
+																									})
+																								->leftJoin('countries as selling', 'products_price.country_id' ,'=' ,'selling.id')
+																								->leftJoin('countries as settings', 'languages.country_id' ,'=' ,'settings.id')
+																									
+																								/*
+left join products_price on products_price.product_id = products.id and products_price.country_id = languages.country_id
+left join countries as selling on products_price.country_id = selling.id
+left join countries as settings on languages.country_id = settings.id
+*/
 															)
 						->showColumns('code')
 						->showColumns('eancode')
@@ -160,7 +207,8 @@ group by product_id)  as country'))
 							</form>';})
 						->setSearchWithAlias()
 						->searchColumns('code','eancode','title')
-						->make();
+						->make(); 
+						
 	}
 
 	public function getCountries($ModelArray = "array")

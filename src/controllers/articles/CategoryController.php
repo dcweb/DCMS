@@ -154,25 +154,6 @@ class CategoryController extends BaseController {
 	}
 	
 	/**
-	 * copy the model
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function copy($id)
-	{
-		//
-		/*
-			$category = CategoryID::find($id);
-		
-			$Newcategory = new CategoryID;
-			$Newcategory->admin =  Auth::user()->username;
-			$Newcategory->save();
-		*/
-		return Redirect::to('admin/articles/categories');
-	}
-
-	/**
 	 * Update the specified resource in storage.
 	 *
 	 * @param  int  $id
@@ -255,7 +236,6 @@ class CategoryController extends BaseController {
 			CategoryID::destroy($mainCategoryID);
 		}
 		
-
 		// redirect
 		Session::flash('message', 'Successfully deleted the category!');
 		return Redirect::to('admin/articles/categories');
