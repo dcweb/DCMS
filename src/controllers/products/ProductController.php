@@ -188,7 +188,6 @@ group by product_id)  as country')) // all countries where this is for sale*/
 																									})
 																								->leftJoin('countries as selling', 'products_price.country_id' ,'=' ,'selling.id')
 																								->leftJoin('countries as settings', 'languages.country_id' ,'=' ,'settings.id')
-																									
 																								/*
 left join products_price on products_price.product_id = products.id and products_price.country_id = languages.country_id
 left join countries as selling on products_price.country_id = selling.id
@@ -208,7 +207,6 @@ left join countries as settings on languages.country_id = settings.id
 						->setSearchWithAlias()
 						->searchColumns('code','eancode','title')
 						->make(); 
-						
 	}
 
 	public function getCountries($ModelArray = "array")
@@ -228,13 +226,13 @@ left join countries as settings on languages.country_id = settings.id
 		}
 	}
 
-	public function getTaxClasses($ModelArray = "array")
+	public function getTaxClasses($returnType = "array")
 	{
 		//volumeclasses
 		//there is no model for VOLUMES so no eloquent querying here
 		$oTaxClasses =  DB::connection("project")->select('SELECT id, tax_class as tax FROM tax_class');
 		
-		if ($ModelArray === "model")
+		if ($returnType === "model")
 		{
 			return $oTaxClasses;
 		}
@@ -250,13 +248,13 @@ left join countries as settings on languages.country_id = settings.id
 		}
 	}
 	
-	public function getVolumesClasses($ModelArray = "array")
+	public function getVolumesClasses($returnType = "array")
 	{
 		//volumeclasses
 		//there is no model for VOLUMES so no eloquent querying here
 		$oVolumeClasses =  DB::connection("project")->select('SELECT id, volume_class as volume FROM volumes_class');
 		
-		if ($ModelArray === "model")
+		if ($returnType === "model")
 		{
 			return $oVolumeClasses;
 		}
@@ -281,8 +279,6 @@ left join countries as settings on languages.country_id = settings.id
 	{
 		//available languages
 		$languageinformation = DB::connection("project")->table("languages")->select( (DB::connection("project")->raw("'' as title, '' as description, NULL as sort_id, (select max(sort_id) from products_information where language_id = languages.id) as maxsort, '' as information_id, '' as id , '' as product_category_id")), "id as language_id", "language","language_name","country")->get();
-		
-		$this->getVolumesClasses();
 				
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::products/products/form')
@@ -292,6 +288,170 @@ left join countries as settings on languages.country_id = settings.id
 					->with('categoryOptionValues',Categorytree::OptionValueTreeArray(false)) //CategoryID::OptionValueArray(true)) //category::optionvaluearray will return a multidimensional array $a[languageid][catid]=catTitle;
 					->with('sortOptionValues',$this->getSortOptions($languageinformation,1));
 	}
+	
+	
+	private function validateProductForm()
+	{
+		// validate
+		// read more on validation at http://laravel.com/docs/validation
+		$rules = array(
+			'code'       => 'required',
+		);
+		$validator = Validator::make(Input::all(), $rules);
+
+		// process the login
+		if ($validator->fails()) {
+			return Redirect::back()//to('admin/products/' . $id . '/edit')
+				->withErrors($validator)
+				->withInput();
+		}
+		else
+		{
+			return true;
+		}
+	}
+	
+	private function saveProductPrice(Product $Product)
+	{
+		$input = Input::get();
+		
+		$uPrice= Price::where('product_id','=',$Product->id);
+		$uPrice->update(array('product_id'=>null));
+		
+		//---------------------------------------------
+		// PRODUCT PRICE (Availability per country)
+		//---------------------------------------------	
+		if (isset($input["price-country-id"]) && count($input["price-country-id"])>0)
+		{
+//			Price::where('product_id', '=', $Product->id)->update(array('product_id' => NULL));	//we should remove all relations with this product
+			foreach($input['price-country-id'] as $price_id => $countryid)
+			{
+				$pPrice = Price::find($price_id);  //we make an update when we get an PIM-id(products_data.id) from the form
+				if (is_null($pPrice) === true)  // if we couln't find a Model for the given PIM-id we need to create/add a new one.
+				{
+					$pPrice = new Price;
+				}
+				$pPrice->country_id 		= $input['price-country-id'][$price_id];
+				$pPrice->price 					= str_replace(",",".",$input['price'][$price_id]);
+				$pPrice->product_id 		= $Product->id;
+				$pPrice->valuta_class_id = $input['valuta_class_id'][$price_id];
+				$pPrice->tax_class_id 	= $input['tax_class_id'][$price_id];
+				$pPrice->admin 					=  Auth::user()->username;
+				$pPrice->save();
+			}
+		}
+		
+		//delete all un-used or recently deleted prices
+		Price::where('product_id','=',null)->delete();
+	}
+
+
+	/**
+	 * Store the product based on a productid or a new product
+	 *
+	 * @return Product Object
+	 */
+	private function saveProductProperties($productid = null)
+	{
+		// do check if the given id is existing.
+		if(!is_null($productid) && intval($productid)>0) $Product = Product::find($productid);
+		if(!isset($Product) || is_null($Product)) $Product = new Product;
+		
+		$Product->code   		= Input::get('code');
+		$Product->eancode 	= Input::get('eancode');
+		$Product->image 		= Input::get('image');
+		$Product->volume 		= Input::get('volume');
+		$Product->volume_unit_class 	= Input::get('volume_unit_class');
+		$Product->admin =  Auth::user()->username;
+		$Product->save();
+		
+		$Product->information()->detach(); //detach any information setting, this will be set up using teh saveProductInformation() method
+		
+		return $Product;
+	}
+
+
+	/**
+	 * Save the ProductInformation to the given product (object)
+	 * this can be filtered by givin a single languageid - the filter helps for returning the model of the saved Information
+	 * by default you get back the last saved Information object
+	 
+	 * @return Product Object
+	 */
+	private function saveProductInformation(Product $Product, $givenlanguage_id = null )
+	{
+		$input = Input::get();
+		
+		$pInformation = null; //pInformation = object product Information
+		
+		if (isset($input["information_language_id"]) && count($input["information_language_id"])>0)
+		{
+			foreach($input["information_language_id"] as $i => $language_id)
+			{
+				if (  (is_null($givenlanguage_id) || ($language_id == $givenlanguage_id)) &&  (strlen(trim($input["information_name"][$i]))>0) )
+				{
+					$pInformation = null; //reset when in a loop
+					$newInformation = true;
+					if(intval($input["information_id"][$i]) > 0 )$pInformation = Information::find($input["information_id"][$i]);
+					if(!isset($pInformation) || is_null($pInformation) ) $pInformation = new Information; else $newInformation = false;
+										
+					$oldSortID = null;			
+					if ($newInformation == false && !is_null($pInformation->sort_id) && intval($pInformation->sort_id)>0) $oldSortID = intval($pInformation->sort_id);
+					
+					$pInformation->title 			= $input["information_name"][$i]; // Input::get('pim-name.1');
+					$pInformation->description 		= $input["information_description"][$i];//Input::get('pim-description.1');
+					$pInformation->language_id 		= $language_id;
+					$pInformation->sort_id 			= $input["information_sort_id"][$i];
+					$pInformation->product_category_id = ($input["information_category_id"][$i]==0?NULL:$input["information_category_id"][$i]);
+					$pInformation->url_slug 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
+					$pInformation->url_path 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
+					$pInformation->admin 			=  Auth::user()->username;
+					$pInformation->save();			
+					$Product->information()->attach($pInformation->id);
+					
+					$sort_incrementstatus = "0"; //the default
+					if(is_null($oldSortID) || $oldSortID == 0)
+					{
+						//update all where sortid >= input::sortid
+						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input["information_sort_id"][$i])->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
+						$sort_incrementstatus = "+1";
+					}
+					elseif ($oldSortID > $input["information_sort_id"][$i])
+					{	
+						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input["information_sort_id"][$i])->where('sort_id','<',$oldSortID)->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
+						$sort_incrementstatus = "+1";
+					}
+					elseif ($oldSortID < $input["information_sort_id"][$i])
+					{	
+						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>',$oldSortID)->where('sort_id','<=',$input["information_sort_id"][$i])->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
+						$sort_incrementstatus = "-1";
+					}
+					
+					if ($sort_incrementstatus <> "0")
+					{
+						if (isset($updateInformations) && count($updateInformations)>0)
+						{
+							//$uInformation for object Information :: update the Information
+							foreach($updateInformations as $uInformation)
+							{
+								if($sort_incrementstatus == "+1") 
+								{
+									$uInformation->sort_id = intval($uInformation->sort_id) + 1;
+									$uInformation->save();
+								}
+								elseif($sort_incrementstatus == "-1") 
+								{
+									$uInformation->sort_id = intval($uInformation->sort_id) - 1 ;
+									$uInformation->save();
+								}
+							}//end foreach($updateInformations as $Information)
+						}//end 	if (count($updateInformations)>0)
+					}//$sort_incrementstatus <> "0"
+				}//end if($language_id ==$language_id
+			}//foreach($input["information_language_id"] as $i => $language_id)
+		}//if (isset($input["information_language_id"]) && count($input["information_language_id"])>0)
+		return $pInformation;
+	}
 
 	/**
 	 * Store a newly created resource in storage.
@@ -299,92 +459,17 @@ left join countries as settings on languages.country_id = settings.id
 	 * @return Response
 	 */
 	public function store()
-	{
-		//
-		$rules = array(
-			'code'       => 'required',
-		);
-		$validator = Validator::make(Input::all(), $rules);
-
-		// process the validator
-		if ($validator->fails()) {
-			return Redirect::to('admin/products/create')
-				->withErrors($validator)
-				->withInput();
-				//->withInput(Input::except());
-		} else {
-			// store
-			//--------------------------------
-			// PRODUCT 
-			//--------------------------------	
-			$product = new Product;
-			$product->code   		= Input::get('code');
-			$product->eancode 	= Input::get('eancode');
-			$product->image 		= Input::get('image');
-			$product->volume 		= Input::get('volume');
-			$product->volume_unit_class 	= Input::get('volume_unit_class');
-			$product->admin =  Auth::user()->username;
-			$product->save();
-			
-			//--------------------------------
-			// PRODUCT DATA (PIM)
-			//--------------------------------	
-			$input = Input::get();
-			
-			if (isset($input["information_language_id"]) && count($input["information_language_id"])>0)
-			{
-				foreach($input["information_language_id"] as $i => $language_id)
-				{
-					if (strlen(trim($input["information_name"][$i]))>0){
-						$pInformation = new Information; 
-						$pInformation->title 				= $input["information_name"][$i]; // Input::get('pim-name.1');
-						$pInformation->description 	= $input["information_description"][$i];//Input::get('pim-description.1');
-						$pInformation->language_id 	= $language_id;
-						$pInformation->sort_id 			= $input["information_sort_id"][$i];
-						$pInformation->product_category_id = ($input["information_category_id"][$i]==0?NULL:$input["information_category_id"][$i]);
-						$pInformation->url_slug 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
-						$pInformation->url_path 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
-						$pInformation->admin 				=  Auth::user()->username;
-						$pInformation->save();			
-						$product->information()->attach($pInformation->id);		
-						
-						//we may have saved this on a sort_id that had been occupied before..
-						// so best to fetch all information items with an equal or higher sort, so we can increment their sortid by 1
-						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input["information_sort_id"][$i])->where('id','<>',$pInformation->id)->get();
-						if (count($updateInformations)>0)
-						{
-							foreach($updateInformations as $Information)
-							{
-								$Information->sort_id = $Information->sort_id +1;
-								$Information->save();
-							}//end foreach($updateInformations as $Information)
-						}//end 	if (count($updateInformations)>0)
-					}//if (strlen(trim($input["information_name"][$i]))>0){
-				}//foreach($input["information_language_id"] as $i => $language_id)
-			}//if (isset($input["information_language_id"]) && count($input["information_language_id"])>0)
-			
-			//--------------------------------------------
-			// PRODUCT PRICES (Availability per country)
-			//--------------------------------------------
-			if (isset($input["price-country-id"]) && count($input["price-country-id"])>0)
-			{
-				foreach($input['price-country-id'] as $i => $v)
-				{
-						$pPrice = new Price;
-						$pPrice->country_id 			= $input['price-country-id'][$i];
-						$pPrice->price 						= str_replace(",",".",$input['price'][$i]);
-						$pPrice->product_id 			= $product->id;
-						$pPrice->valuta_class_id 	= $input['valuta_class_id'][$i];
-						$pPrice->tax_class_id 		= $input['tax_class_id'][$i];
-						$pPrice->admin 						=  Auth::user()->username;
-						$pPrice->save();
-				}
-			}
-	
-			// redirect
-			Session::flash('message', 'Successfully created Product!');
-			return Redirect::to('admin/products');
-		}
+	{		
+			if ($this->validateProductForm() === true)
+			{ 
+				$Product = $this->saveProductProperties();
+				$this->saveProductInformation($Product);
+				$this->saveProductPrice($Product);
+				
+				// redirect
+				Session::flash('message', 'Successfully created Product!');
+				return Redirect::to('admin/products');
+			}else return  $this->validateProductForm();
 	}
 
 	/**
@@ -468,157 +553,16 @@ left join countries as settings on languages.country_id = settings.id
 	 */
 	public function update($id)
 	{
-		// validate
-		// read more on validation at http://laravel.com/docs/validation
-		$rules = array(
-			'code'       => 'required',
-		);
-		$validator = Validator::make(Input::all(), $rules);
-
-		// process the login
-		if ($validator->fails()) {
-			return Redirect::to('admin/products/' . $id . '/edit')
-				->withErrors($validator)
-				->withInput();
-		} else {
-			
-			// store
-			//--------------------------------
-			// PRODUCT UPDATE
-			//--------------------------------	
-			$Product = Product::find($id);
-			
-			if (!isset($Product) ||is_null($Product))
-			{
-				$Product = new Product();
-			}
-			
-			$Product->code  		= Input::get('code');
-			$Product->eancode		= Input::get('eancode');
-			$Product->image			= Input::get('image');
-			$Product->volume 		= Input::get('volume');
-			$Product->volume_unit_class 	= Input::get('volume_unit_class');
-			$Product->admin 		=  Auth::user()->username;
-			$Product->save();
+		if($this->validateProductForm()===true)
+		{ 
+			$Product = $this->saveProductProperties($id);
+			$this->saveProductInformation($Product);
+			$this->saveProductPrice($Product);
 	
-			////if you want to release the entire relations in the pivot table		
-			$Product->information()->detach();
-			
-			$uPrice= Price::where('product_id','=',$id);
-			$uPrice->update(array('product_id'=>null));
-			
-			//https://github.com/laravel/framework/pull/3326
-			//$Product->price()->dissociate();
-			//--------------------------------
-			// PRODUCT DATA (PIM)
-			//--------------------------------	
-			$input = Input::get();
-			
-			if (isset($input["information_language_id"]) && count($input["information_language_id"])>0)
-			{
-				foreach($input["information_language_id"] as $i => $language_id)
-				{
-						$processThisFormPart = true; //by default we may process every languages
-						
-						$pInformation = Information::find($input["information_id"][$i]);  //we make an update when we get an PIM-id(products_data.id) from the form
-						if (is_null($pInformation) === true)  // if we couln't find a Model for the given PIM-id we need to create/add a new one.
-						{
-							if (strlen(trim($input["information_name"][$i]))<=0) // we don't need a new Productdata(PIM) record when there is no name given - should also return an error on the validator.
-							{
-								$processThisFormPart = false;
-							}
-							else	
-							{
-								$pInformation = new Information();
-							}
-						}
-						
-						//we only need to process when there is a name given
-						if ($processThisFormPart  === true)
-						{
-							$oldSortID = intval($pInformation->sort_id);
-							
-							$pInformation->title 				= $input["information_name"][$i]; // Input::get('pim-name.1');
-							$pInformation->description 	= $input["information_description"][$i];//Input::get('pim-description.1');
-							$pInformation->sort_id 			= $input["information_sort_id"][$i];
-							$pInformation->language_id 	= $language_id;
-							$pInformation->product_category_id = ($input["information_category_id"][$i]==0?NULL:$input["information_category_id"][$i]);
-							$pInformation->url_slug = SEOHelpers::SEOUrl($input["information_name"][$i]); 
-							$pInformation->url_path = SEOHelpers::SEOUrl($input["information_name"][$i]); 
-							$pInformation->admin 				=  Auth::user()->username;
-							$pInformation->save();	
-							$Product->information()->attach($pInformation->id);			
-							
-							//we may have saved this on a sort_id that had been occupied before..
-							// so best to fetch all information items with an equal or higher sort, so we can increment their sortid by 1
-							$sort_incrementstatus = "0";
-							if($oldSortID == 0)
-							{
-								$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input["information_sort_id"][$i])->where('id','<>',$pInformation->id)->get();
-								$sort_incrementstatus = "+1";
-							}
-							elseif ($oldSortID > $input["information_sort_id"][$i])
-							{	
-								$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input["information_sort_id"][$i])->where('sort_id','<',$oldSortID)->where('id','<>',$pInformation->id)->get();
-								$sort_incrementstatus = "+1";
-							}
-							elseif ($oldSortID < $input["information_sort_id"][$i])
-							{	
-								$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>',$oldSortID)->where('sort_id','<=',$input["information_sort_id"][$i])->where('id','<>',$pInformation->id)->get();
-								$sort_incrementstatus = "-1";
-							}
-							
-							if ($sort_incrementstatus <> "0")
-							{
-								if (isset($updateInformations) && count($updateInformations)>0)
-								{
-									foreach($updateInformations as $Information)
-									{
-										if($sort_incrementstatus == "+1") 
-										{
-											$Information->sort_id = $Information->sort_id + 1;
-											$Information->save();
-										}
-										elseif($sort_incrementstatus == "-1") 
-										{
-											$Information->sort_id = $Information->sort_id -1 ;
-											$Information->save();
-										}
-									}//end foreach($updateInformations as $Information)
-								}//end 	if (count($updateInformations)>0)
-							}//$sort_incrementstatus <> "0"
-						}
-				}			
-			}
-	
-			//---------------------------------------------
-			// PRODUCT PRICE (Availability per country)
-			//---------------------------------------------	
-			if (isset($input["price-country-id"]) && count($input["price-country-id"])>0)
-			{
-					Price::where('product_id', '=', $id)->update(array('product_id' => NULL));	//we should remove all relations with this product
-					foreach($input['price-country-id'] as $i => $v)
-					{
-							$pPrice = Price::find($i);  //we make an update when we get an PIM-id(products_data.id) from the form
-							if (is_null($pPrice) === true)  // if we couln't find a Model for the given PIM-id we need to create/add a new one.
-							{
-								$pPrice = new Price;
-							}
-							$pPrice->country_id 		= $input['price-country-id'][$i];
-							$pPrice->price 					= str_replace(",",".",$input['price'][$i]);
-							$pPrice->product_id 		= $Product->id;
-							$pPrice->valuta_class_id = $input['valuta_class_id'][$i];
-							$pPrice->tax_class_id 	= $input['tax_class_id'][$i];
-							$pPrice->admin 					=  Auth::user()->username;
-							$pPrice->save();
-					}
-					Price::where('product_id','=',null)->delete();
-			}
-			
 			// redirect
 			Session::flash('message', 'Successfully updated Product!');
 			return Redirect::to('admin/products');
-		}
+		}else return  $this->validateProductForm();
 	}
 
 
@@ -639,6 +583,19 @@ left join countries as settings on languages.country_id = settings.id
 		{
 			// delete
 			$Information = Information::find($id);
+
+			//find the sortid of this product... so all the above can descent by 1
+			$updateInformations = Information::where('language_id','=',$Information->language_id)->where('sort_id','>',$Information->sort_id)->get(array('id','sort_id'));
+			if (isset($updateInformations) && count($updateInformations)>0)
+			{
+				//$uInformation for object Information :: update the Information
+				foreach($updateInformations as $uInformation)
+				{
+					$uInformation->sort_id = intval($uInformation->sort_id) - 1 ;
+					$uInformation->save();
+				}//end foreach($updateInformations as $Information)
+			}//end 	if (count($updateInformations)>0)
+			
 			$Information->products()->detach();
 			$Information->delete();
 		}

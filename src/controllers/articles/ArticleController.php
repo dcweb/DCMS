@@ -5,6 +5,7 @@ namespace Dcweb\Dcms\Controllers\Articles;
 use Dcweb\Dcms\Models\Articles\Article;
 use Dcweb\Dcms\Models\Articles\Detail;
 use Dcweb\Dcms\Models\Articles\CategoryID;
+use Dcweb\Dcms\Models\Pages\Pagetree;
 use Dcweb\Dcms\Controllers\BaseController;
 use View;
 use Input;
@@ -72,7 +73,8 @@ class ArticleController extends BaseController {
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::articles/articles/form')
 					->with('languages',$languages)
-					->with('categoryOptionValues',CategoryID::OptionValueArray(false));
+					->with('categoryOptionValues',CategoryID::OptionValueArray(false))
+					->with('pageOptionValues',Pagetree::OptionValueArray(false));
 	}
 
 	/**
@@ -82,9 +84,21 @@ class ArticleController extends BaseController {
 	 */
 	public function store()
 	{
+		if ($this->validateArticleForm() === true)
+		{
+			$Article = $this->saveArticleProperties();
+			if (!is_null($Article))	$this->saveArticleDetail($Article);
+	
+			// redirect
+			Session::flash('message', 'Successfully created article!');
+			return Redirect::to('admin/articles');
+		}else return  $this->validateArticleForm();
+			
+		
+	/*	
 		//
 		$rules = array(
-			'title'       => 'required',
+		//	'title'       => 'required',
 		);
 		$validator = Validator::make(Input::all(), $rules);
 
@@ -103,7 +117,14 @@ class ArticleController extends BaseController {
 			{
 				if (strlen(trim($input["title"][$language_id]))>0)
 				{
-					//since we loop with foreach we don't want to create everytime a new article
+					//----------------------------------------
+					// We loop over different titles based
+					// on their languages
+					// the first time we hit a title
+					// we need to set the Articles global data
+					// the second time we just tag the 
+					// language details to the global article
+					//----------------------------------------
 					if (!isset($Article) || is_null($Article) )
 					{
 						$Article = new Article;
@@ -113,14 +134,18 @@ class ArticleController extends BaseController {
 						$Article->admin =  Auth::user()->username;
 						$Article->save();
 					}
-				
+					
+					//----------------------------------------
+					// set the details of different languages
+					// of the article
+					//----------------------------------------
 					$Detail = new Detail();
 									
-					$Detail->language_id 		= $language_id;
+					$Detail->language_id 	= $language_id;
 					$Detail->article_category_id = ($input["category_id"][$language_id]==0?NULL:$input["category_id"][$language_id]); 
 					$Detail->title 				= $input["title"][$language_id];
 					$Detail->description 	= $input["description"][$language_id];
-					$Detail->body 					= $input["body"][$language_id];
+					$Detail->body 				= $input["body"][$language_id];
 					
 					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
@@ -129,6 +154,21 @@ class ArticleController extends BaseController {
 					$Detail->save();		
 					Article::find($Article->id)->detail()->save($Detail);
 					
+					//----------------------------------------
+					// link the article to the selected page
+					// we will take the $Detail->id since
+					// this directly holds the language_id
+					// otherwise we'd be storing it twice
+					//----------------------------------------
+					if(isset($input["page_id"]) && count($input["page_id"][$language_id])>0)
+					{
+						foreach($input["page_id"][$language_id] as $arrayindex => $page_id)
+						{
+							//Detail::find($Detail->id)->pages->save($page_id);
+							$Detail->pages()->attach($page_id);		
+						}
+					}//end - if(count($input["page_id"][$language_id])>0)
+
 				}//if title is set
 			}//end foreach
 			
@@ -136,6 +176,7 @@ class ArticleController extends BaseController {
 			Session::flash('message', 'Successfully created article!');
 			return Redirect::to('admin/articles');
 		}
+		*/
 	}
 
 
@@ -173,7 +214,7 @@ class ArticleController extends BaseController {
 			$article->startdate = (is_null($article->startdate)? null : DateTime::createFromFormat('Y-m-d', $article->startdate)->format('d-m-Y'));
 			$article->enddate = (is_null($article->enddate)? null : DateTime::createFromFormat('Y-m-d', $article->enddate)->format('d-m-Y'));
 		
-		 	$languages = DB::connection("project")->select('
+		 	$objlanguages = DB::connection("project")->select('
 													SELECT language_id, languages.language, languages.country, languages.language_name, article_category_id, articles_detail.id, article_id, title, description, body, date_format(startdate,\'%d-%m-%Y\') as startdate , date_format(enddate,\'%d-%m-%Y\')  as enddate 
 													FROM articles_detail
 													LEFT JOIN languages on languages.id = articles_detail.language_id
@@ -185,11 +226,29 @@ class ArticleController extends BaseController {
 													WHERE id NOT IN (SELECT language_id FROM articles_detail WHERE article_id = ?) ORDER BY 1
 													', array($id,$id));
 
+				
+		 	$objselected_pages = DB::connection("project")->select('
+													SELECT article_detail_id, page_id 
+													FROM articles_detail_to_pages 
+													WHERE article_detail_id IN (SELECT id FROM articles_detail WHERE article_id = ?)',array($id));
+
+
+			$pageOptionValuesSelected = array();
+			if (count($objselected_pages)>0)
+			{
+				foreach($objselected_pages as $obj)
+				{
+					$pageOptionValuesSelected[$obj->article_detail_id][$obj->page_id] = $obj->page_id;
+				}
+			}
+			
 			// show the edit form and pass the nerd
 			return View::make('dcms::articles/articles/form')
 				->with('article', $article)
-				->with('languages', $languages)
-				->with('categoryOptionValues',CategoryID::OptionValueArray(false));;
+				->with('languages', $objlanguages)
+				->with('categoryOptionValues',CategoryID::OptionValueArray(false))
+				->with('pageOptionValues',Pagetree::OptionValueArray(false))
+				->with('pageOptionValuesSelected',$pageOptionValuesSelected);
 	}
 	
 	
@@ -211,6 +270,115 @@ class ArticleController extends BaseController {
 	}
 
 
+	private function validateArticleForm()
+	{
+		$rules = array(
+		//	'title' => 'required'
+		);
+		$validator = Validator::make(Input::all(),$rules);
+		
+		// process the login
+		if ($validator->fails()) {
+			return Redirect::back()//to('admin/products/' . $id . '/edit')
+				->withErrors($validator)
+				->withInput();
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+
+	private function saveArticleProperties($articleid = null)
+	{
+		$input = Input::get();
+
+		// do check if the given id is existing.
+		if(!is_null($articleid) && intval($articleid)>0) $Article= Article::find($articleid);
+		if(!isset($Article) || is_null($Article)) $Article = new Article;
+
+		foreach($input["title"] as $language_id  => $title)
+		{
+			if (strlen(trim($input["title"][$language_id]))>0)
+			{
+				//----------------------------------------
+				// once there is a title set
+				// we can set the properties to the article
+				// and instantly return the article model
+				// by default nothing is return so the
+				// script may stop.
+				//----------------------------------------
+				$Article->startdate =  (!empty($input["startdate"]) ? DateTime::createFromFormat('d-m-Y', $input["startdate"])->format('Y-m-d') : null);
+				$Article->enddate =  (!empty($input["enddate"]) ? DateTime::createFromFormat('d-m-Y', $input["enddate"])->format('Y-m-d') : null);
+				$Article->thumbnail = $input["thumbnail"];
+				$Article->admin =  Auth::user()->username;
+				$Article->save();
+				return $Article;
+				break; // we only have to save the global settings once.
+			}
+		}
+		//does not return anything by defuault... (may be false dunno - find out)
+	}
+	
+	private function saveArticleDetail(Article $Article, $givenlanguage_id = null)
+	{
+		$input = Input::get();
+	
+		$Detail = null;
+	
+		foreach($input["title"] as $language_id  => $title)
+		{
+			if (strlen(trim($title))>0) //we don't want to populate the database when there is no title given
+			{
+				if ((is_null($givenlanguage_id) || ($language_id == $givenlanguage_id)))
+				{
+					$Detail = null;
+					$Detail = Detail::find($input["article_information_id"][$language_id]);
+					if (is_null($Detail) === true)	$Detail = new Detail(); 
+					
+					$Detail->language_id 					= $language_id;
+					$Detail->article_category_id 	= ($input["category_id"][$language_id]==0?NULL:$input["category_id"][$language_id]);
+					$Detail->title 								= $input["title"][$language_id];
+					$Detail->description 					= $input["description"][$language_id];
+					$Detail->body 								= $input["body"][$language_id];
+				
+					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+					
+					$Detail->admin 								=  Auth::user()->username;
+					$Detail->save();	
+					
+					//Article::find($Article->id)->detail()->save($Detail);
+					$Article->detail()->save($Detail);
+					//$Article->detail()->attach($Detail->id); //does not seem to work.. what's the difference with attach vs save
+					
+					//----------------------------------------
+					// Detach the $Detail from all pages
+					//----------------------------------------
+					$Detail->pages()->detach();		
+					
+					//----------------------------------------
+					// link the article to the selected page
+					// we will take the $Detail->id since
+					// this directly holds the language_id
+					// otherwise we'd be storing it twice
+					//----------------------------------------
+					if(isset($input["page_id"]) && isset($input["page_id"][$language_id]) && count($input["page_id"][$language_id])>0)
+					{
+						foreach($input["page_id"][$language_id] as $arrayindex => $page_id)
+						{
+							//Detail::find($Detail->id)->pages->save($page_id);
+							$Detail->pages()->attach($page_id);		
+						}
+					}//end - if(count($input["page_id"][$language_id])>0)
+				}
+			}
+		}
+		return $Detail;		
+	}
+	
+
 	/**
 	 * Update the specified resource in storage.
 	 *
@@ -219,21 +387,34 @@ class ArticleController extends BaseController {
 	 */
 	public function update($id)
 	{
+		if ($this->validateArticleForm() === true)
+		{
+			$Article = $this->saveArticleProperties($id);
+			if (!is_null($Article))	$this->saveArticleDetail($Article);
+	
+			// redirect
+			Session::flash('message', 'Successfully updated article!');
+			return Redirect::to('admin/articles');
+		}else return  $this->validateArticleForm();
+
+/*		
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
 		$rules = array(
-			'title'       => 'required',
+			//'title' => 'required',
 		);
 		$validator = Validator::make(Input::all(), $rules);
 
 		// process the login
-		if ($validator->fails()) {
+		if ($validator->fails()) 
+		{
 			return Redirect::to('admin/articles/' . $id . '/edit')
 				->withErrors($validator)
 				->withInput();
-		} else {
+		} 
+		else 
+		{
 			// store
-			
 			$Article = Article::find($id);
 			
 			$input = Input::get();
@@ -269,7 +450,28 @@ class ArticleController extends BaseController {
 					
 					$Detail->admin 								=  Auth::user()->username;
 					$Detail->save();	
+					
 					Article::find($Article->id)->detail()->save($Detail);
+					
+					//----------------------------------------
+					// Detach the $Detail from all pages
+					//----------------------------------------
+					$Detail->pages()->detach();		
+					
+					//----------------------------------------
+					// link the article to the selected page
+					// we will take the $Detail->id since
+					// this directly holds the language_id
+					// otherwise we'd be storing it twice
+					//----------------------------------------
+					if(count($input["page_id"][$language_id])>0)
+					{
+						foreach($input["page_id"][$language_id] as $arrayindex => $page_id)
+						{
+							//Detail::find($Detail->id)->pages->save($page_id);
+							$Detail->pages()->attach($page_id);		
+						}
+					}//end - if(count($input["page_id"][$language_id])>0)
 				}
 			}//end foreach
 			
@@ -277,6 +479,7 @@ class ArticleController extends BaseController {
 			Session::flash('message', 'Successfully updated article!');
 			return Redirect::to('admin/articles');
 		}
+		*/
 	}
 
 	/**

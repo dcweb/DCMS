@@ -21,4 +21,10 @@ use Eloquent;
 				return $this->belongsTo('\Dcweb\Dcms\Models\Articles\Category', 'article_category_id', 'id');
 		}
 		
+		public function pages()
+		{
+			// BelongsToMany belongsToMany(string $related, string $table = null, string $foreignKey = null, string $otherKey = null, string $relation = null)
+			return $this->belongsToMany('\Dcweb\Dcms\Models\Pages\Page', 'articles_detail_to_pages', 'article_detail_id', 'page_id');
+		}
+		
 	}

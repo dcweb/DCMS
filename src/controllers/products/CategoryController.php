@@ -83,9 +83,9 @@ class CategoryController extends BaseController {
 		$mysqli = new \mysqli(Config::get("database.connections.project.host"), Config::get("database.connections.project.username"), Config::get("database.connections.project.password"), Config::get("database.connections.project.database"));
 		foreach($Languages as $Lang)
 		{	
-			//DB::connection("project")->statement(DB::connection("project")->raw('CALL recursiveproductscategory(0,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
+			//DB::connection("project")->statement(DB::connection("project")->raw('CALL recursiveproductscategory(1,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
 			
-			$mysqli->multi_query('CALL recursiveproductscategory(0,0,'.$Lang->id.',\'\',\'\',\'\',0);');
+			$mysqli->multi_query('CALL recursiveproductscategory(1,0,'.$Lang->id.',\'\',\'\',\'\',0);');
 			do {
 						if ($res = $mysqli->store_result()) {
 								$res->free();
@@ -103,9 +103,13 @@ class CategoryController extends BaseController {
 	{
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
-		$rules = array(
-//			'title'       => 'required'
-		);
+		$Languages = Language::all();
+		$rules = array('sort_id'=>'required|integer');
+		foreach($Languages as $Lang)
+		{
+			$rules['title.'.$Lang->id] = 'required';
+		}
+		
 		$validator = Validator::make(Input::all(), $rules);
 
 		// process the login
@@ -211,9 +215,12 @@ class CategoryController extends BaseController {
 	{
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
-		$rules = array(
-			//			'title'       => 'required'
-		);
+		$Languages = Language::all();
+		$rules = array('sort_id'=>'required|integer');
+		foreach($Languages as $Lang)
+		{
+			$rules['title.'.$Lang->id] = 'required';
+		}		
 		
 		$validator = Validator::make(Input::all(), $rules);
 

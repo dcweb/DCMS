@@ -30,7 +30,7 @@ class UserController extends BaseController {
         if (Auth::attempt($credentials)) {
 					session_start();
 					$_SESSION["admin"]["allow_ckfinder"] = true;
-					  return Redirect::intended("admin/dashboard"); //intended will keep in mind your entry point, if none has been found a default is given
+					return Redirect::intended("admin/dashboard"); //intended will keep in mind your entry point, if none has been found a default is given
         //  return Redirect::route("admin/dashboard");
         }
   

@@ -14,6 +14,7 @@
 Route::group( array("prefix" => "admin"), function() {
 
 	Route::get("/", function() { return Redirect::to("admin/login"); });
+	
 	Route::any("/login", array( "as" => "admin/users/login", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@login"));
 	Route::any("/logout", array( "as" => "admin/users/logout", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@logout"));
 	// Route::any("/request", array("as" => "admin/users/request", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@request"));

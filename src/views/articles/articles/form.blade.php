@@ -67,6 +67,11 @@
                         {{ Form::textarea('body[' . $information->language_id . ']', (Input::old('body[' . $information->language_id . ']') ? Input::old('body[' . $information->language_id . ']') : $information->body ), array('class' => 'form-control')) }}
                       </div>
                                                                         
+                      <div class="form-group">
+                      {{ Form::label('page_id[' . $information->language_id . ']', 'Page') }}
+                      {{ isset($pageOptionValues[$information->language_id])? Form::select('page_id[' . $information->language_id . '][]', $pageOptionValues[$information->language_id], (Input::old('page_id[' . $information->language_id . ']') ? Input::old('page_id[' . $information->language_id . ']') : (isset($pageOptionValuesSelected[$information->id]) && count($pageOptionValuesSelected[$information->id])>0)?$pageOptionValuesSelected[$information->id]:''), array('multiple','class' => 'form-control')):'No pages found' }}
+                      </div>
+                                                                        
                     </div>
                     
               @endforeach

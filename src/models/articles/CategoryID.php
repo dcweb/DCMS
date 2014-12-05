@@ -18,10 +18,11 @@ use Eloquent;
 		//the columnMapper is an array with integer index values
 		// 0 represesenting the id column
 		// 1 		"		 "	value "
-		public static function OptionValueArray($enableEmpty = false, $columns = array('*') , $columnMapper = array("id","title")  ){
-
-			$catObj = parent::all($columns);
-
+		public static function OptionValueArray($enableEmpty = false, $columns = array('*') , $columnMapper = array("id","title")  )
+		{
+			//$catObj = parent::all($columns);
+			$catObj = parent::with('category')->get($columns); //this will be eager loading the category 
+		
 			$OptionValueArray = array();
 	
 			foreach($catObj as $cat)

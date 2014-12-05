@@ -86,9 +86,9 @@ class PageController extends BaseController {
 		
 		foreach($Languages as $Lang)
 		{
-		//	DB::connection("project")->statement(DB::connection("project")->raw('CALL recursivepage(0,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
+		//	DB::connection("project")->statement(DB::connection("project")->raw('CALL recursivepage(1,0,'.$Lang->id.',\'\',\'\',\'\',0);'));
 			
-			if (!$mysqli->multi_query('CALL recursivepage(0,0,'.$Lang->id.',\'\',\'\',\'\',0);')) {
+			if (!$mysqli->multi_query('CALL recursivepage(1,0,'.$Lang->id.',\'\',\'\',\'\',0);')) {
 					echo "CALL failed: (" . $mysqli->errno . ") " . $mysqli->error;
 			}
 			
@@ -107,15 +107,18 @@ class PageController extends BaseController {
 	 */
 	public function store()
 	{
-		//
-		$rules = array(
-			'title'       => 'required',
-		);
+		$Languages = Language::all();
+		$rules = array('sort_id'=>'required|integer');
+		foreach($Languages as $Lang)
+		{
+			$rules['title.'.$Lang->id] = 'required';
+		}
+		
 		$validator = Validator::make(Input::all(), $rules);
 
 		// process the validator
 		if ($validator->fails()) {
-			return Redirect::to('admin/articles/create')
+			return Redirect::to('admin/pages/create')
 				->withErrors($validator)
 				->withInput();
 				//->withInput(Input::except());
@@ -205,9 +208,13 @@ class PageController extends BaseController {
 	{
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
-		$rules = array(
-			'title'       => 'required',
-		);
+		$Languages = Language::all();
+		$rules = array('sort_id'=>'required|integer');
+		foreach($Languages as $Lang)
+		{
+			$rules['title.'.$Lang->id] = 'required';
+		}
+		
 		$validator = Validator::make(Input::all(), $rules);
 
 		// process the login

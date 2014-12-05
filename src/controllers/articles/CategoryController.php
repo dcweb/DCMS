@@ -2,9 +2,12 @@
 
 namespace Dcweb\Dcms\Controllers\Articles;
 
+use Dcweb\Dcms\Controllers\BaseController;
+
 use Dcweb\Dcms\Models\Articles\CategoryID;
 use Dcweb\Dcms\Models\Articles\Category;
-use Dcweb\Dcms\Controllers\BaseController;
+use Dcweb\Dcms\Models\Languages\Language;
+
 use View;
 use Input;
 use Session;
@@ -80,9 +83,14 @@ class CategoryController extends BaseController {
 	{
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
-		$rules = array(
-//			'title'       => 'required'
-		);
+		
+		$Languages = Language::all();
+		$rules = array();
+		foreach($Languages as $Lang)
+		{
+			$rules['title.'.$Lang->id] = 'required';
+		}
+		
 		$validator = Validator::make(Input::all(), $rules);
 
 		// process the login
@@ -163,9 +171,12 @@ class CategoryController extends BaseController {
 	{
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
-		$rules = array(
-//			'title'       => 'required'
-		);
+		$Languages = Language::all();
+		$rules = array();
+		foreach($Languages as $Lang)
+		{
+			$rules['title.'.$Lang->id] = 'required';
+		}
 		
 		$validator = Validator::make(Input::all(), $rules);
 
