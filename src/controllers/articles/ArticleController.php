@@ -60,6 +60,28 @@ class ArticleController extends BaseController {
 						->make();
 	}
 
+	public function getInformation($id = null)
+	{
+		if(is_null($id))
+		{
+			return DB::connection("project")->table("languages")->select((DB::connection("project")->raw("'' as title, NULL as sort_id, (select max(sort_id) from articles_detail where language_id = languages.id) as maxsort, '' as description , '' as body, '' as article_category_id")), "id","id as language_id",  "language","country","language_name")->get();
+		}
+		else
+		{
+			return DB::connection("project")->select('
+													SELECT language_id, languages.language, languages.country, languages.language_name, article_category_id, articles_detail.id, article_id, title, sort_id, (select max(sort_id) from articles_detail as X  where X.language_id = articles_detail.language_id) as maxsort,  description, body, date_format(startdate,\'%d-%m-%Y\') as startdate , date_format(enddate,\'%d-%m-%Y\')  as enddate 
+													FROM articles_detail
+													LEFT JOIN languages on languages.id = articles_detail.language_id
+													LEFT JOIN articles on articles.id = articles_detail.article_id
+													WHERE  languages.id is not null AND  article_id = ?
+													UNION
+													SELECT languages.id , language, country, language_name, \'\' , \'\' ,  \'\' , \'\' , NULL as sort_id, (select max(sort_id) from articles_detail where language_id = languages.id) as maxsort, \'\' , \'\'  , \'\' , \'\' 
+													FROM languages 
+													WHERE id NOT IN (SELECT language_id FROM articles_detail WHERE article_id = ?) ORDER BY 1
+													', array($id,$id));
+		}
+	}
+
 
 	/**
 	 * Show the form for creating a new resource.
@@ -68,13 +90,14 @@ class ArticleController extends BaseController {
 	 */
 	public function create()
 	{
-		$languages =  DB::connection("project")->table("languages")->select((DB::connection("project")->raw("'' as title, '' as description , '' as body, '' as article_category_id")), "id","id as language_id",  "language","country","language_name")->get();
+		$languages =  $this->getInformation();
 		
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::articles/articles/form')
 					->with('languages',$languages)
 					->with('categoryOptionValues',CategoryID::OptionValueArray(false))
-					->with('pageOptionValues',Pagetree::OptionValueArray(false));
+					->with('pageOptionValues',Pagetree::OptionValueArray(false))
+					->with('sortOptionValues',$this->getSortOptions($languages,1));
 	}
 
 	/**
@@ -93,90 +116,6 @@ class ArticleController extends BaseController {
 			Session::flash('message', 'Successfully created article!');
 			return Redirect::to('admin/articles');
 		}else return  $this->validateArticleForm();
-			
-		
-	/*	
-		//
-		$rules = array(
-		//	'title'       => 'required',
-		);
-		$validator = Validator::make(Input::all(), $rules);
-
-		// process the validator
-		if ($validator->fails()) {
-			return Redirect::to('admin/articles/create')
-				->withErrors($validator)
-				->withInput();
-				//->withInput(Input::except());
-		} else {
-			// store
-			
-			$input = Input::get();
-			
-			foreach($input["title"] as $language_id  => $title)
-			{
-				if (strlen(trim($input["title"][$language_id]))>0)
-				{
-					//----------------------------------------
-					// We loop over different titles based
-					// on their languages
-					// the first time we hit a title
-					// we need to set the Articles global data
-					// the second time we just tag the 
-					// language details to the global article
-					//----------------------------------------
-					if (!isset($Article) || is_null($Article) )
-					{
-						$Article = new Article;
-						$Article->startdate =  (!empty($input["startdate"]) ? DateTime::createFromFormat('d-m-Y', $input["startdate"])->format('Y-m-d') : null);
-						$Article->enddate =  (!empty($input["enddate"]) ? DateTime::createFromFormat('d-m-Y', $input["enddate"])->format('Y-m-d') : null);
-						$Article->thumbnail = $input["thumbnail"];
-						$Article->admin =  Auth::user()->username;
-						$Article->save();
-					}
-					
-					//----------------------------------------
-					// set the details of different languages
-					// of the article
-					//----------------------------------------
-					$Detail = new Detail();
-									
-					$Detail->language_id 	= $language_id;
-					$Detail->article_category_id = ($input["category_id"][$language_id]==0?NULL:$input["category_id"][$language_id]); 
-					$Detail->title 				= $input["title"][$language_id];
-					$Detail->description 	= $input["description"][$language_id];
-					$Detail->body 				= $input["body"][$language_id];
-					
-					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
-					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
-					
-					$Detail->admin 				= Auth::user()->username;
-					$Detail->save();		
-					Article::find($Article->id)->detail()->save($Detail);
-					
-					//----------------------------------------
-					// link the article to the selected page
-					// we will take the $Detail->id since
-					// this directly holds the language_id
-					// otherwise we'd be storing it twice
-					//----------------------------------------
-					if(isset($input["page_id"]) && count($input["page_id"][$language_id])>0)
-					{
-						foreach($input["page_id"][$language_id] as $arrayindex => $page_id)
-						{
-							//Detail::find($Detail->id)->pages->save($page_id);
-							$Detail->pages()->attach($page_id);		
-						}
-					}//end - if(count($input["page_id"][$language_id])>0)
-
-				}//if title is set
-			}//end foreach
-			
-			// redirect
-			Session::flash('message', 'Successfully created article!');
-			return Redirect::to('admin/articles');
-		}
-		*/
 	}
 
 
@@ -198,7 +137,46 @@ class ArticleController extends BaseController {
 			->with('article', $article)
 			->with("category",$cat->title);
 	}
+	
+	public function getSortOptions($model,$setExtra = 0)
+	{
+		foreach($model as $M)
+		{
+			$increment = 0;
+			if ($setExtra > 0) $increment = $setExtra;
+			if(intval($M->id)<=0 && !is_null($M->maxsort)) $increment = 1;
+			
+			$maxSortID  = $M->maxsort;
+			if (is_null($maxSortID) ) $maxSortID = 1;
+			
+			for($i = 1; $i<=($maxSortID+$increment); $i++)
+			{
+				$SortOptions[$M->language_id][$i] = $i;
+			}
+		}
+		return $SortOptions;
+	}	
 
+	public function getSelectedPages($articleid = null)
+	{
+		return DB::connection("project")->select('
+													SELECT article_detail_id, page_id 
+													FROM articles_detail_to_pages 
+													WHERE article_detail_id IN (SELECT id FROM articles_detail WHERE article_id = ?)',array($articleid));
+	}
+	
+	public function setPageOptionValues($objselected_pages)
+	{
+		$pageOptionValuesSelected = array();
+		if (count($objselected_pages)>0)
+		{
+			foreach($objselected_pages as $obj)
+			{
+				$pageOptionValuesSelected[$obj->article_detail_id][$obj->page_id] = $obj->page_id;
+			}
+		}
+		return $pageOptionValuesSelected;
+	}
 
 	/**
 	 * Show the form for editing the specified resource.
@@ -208,49 +186,24 @@ class ArticleController extends BaseController {
 	 */
 	public function edit($id)
 	{
-			//
-			// get the article
-			$article = Article::find($id);
-			$article->startdate = (is_null($article->startdate)? null : DateTime::createFromFormat('Y-m-d', $article->startdate)->format('d-m-Y'));
-			$article->enddate = (is_null($article->enddate)? null : DateTime::createFromFormat('Y-m-d', $article->enddate)->format('d-m-Y'));
-		
-		 	$objlanguages = DB::connection("project")->select('
-													SELECT language_id, languages.language, languages.country, languages.language_name, article_category_id, articles_detail.id, article_id, title, description, body, date_format(startdate,\'%d-%m-%Y\') as startdate , date_format(enddate,\'%d-%m-%Y\')  as enddate 
-													FROM articles_detail
-													LEFT JOIN languages on languages.id = articles_detail.language_id
-													LEFT JOIN articles on articles.id = articles_detail.article_id
-													WHERE  languages.id is not null AND  article_id = ?
-													UNION
-													SELECT languages.id , language, country, language_name, \'\' , \'\' ,  \'\' , \'\' , \'\' , \'\'  , \'\' , \'\' 
-													FROM languages 
-													WHERE id NOT IN (SELECT language_id FROM articles_detail WHERE article_id = ?) ORDER BY 1
-													', array($id,$id));
-
-				
-		 	$objselected_pages = DB::connection("project")->select('
-													SELECT article_detail_id, page_id 
-													FROM articles_detail_to_pages 
-													WHERE article_detail_id IN (SELECT id FROM articles_detail WHERE article_id = ?)',array($id));
-
-
-			$pageOptionValuesSelected = array();
-			if (count($objselected_pages)>0)
-			{
-				foreach($objselected_pages as $obj)
-				{
-					$pageOptionValuesSelected[$obj->article_detail_id][$obj->page_id] = $obj->page_id;
-				}
-			}
-			
-			// show the edit form and pass the nerd
-			return View::make('dcms::articles/articles/form')
-				->with('article', $article)
-				->with('languages', $objlanguages)
-				->with('categoryOptionValues',CategoryID::OptionValueArray(false))
-				->with('pageOptionValues',Pagetree::OptionValueArray(false))
-				->with('pageOptionValuesSelected',$pageOptionValuesSelected);
-	}
+		//
+		// get the article
+		$article = Article::find($id);
+		$article->startdate = (is_null($article->startdate)? null : DateTime::createFromFormat('Y-m-d', $article->startdate)->format('d-m-Y'));
+		$article->enddate = (is_null($article->enddate)? null : DateTime::createFromFormat('Y-m-d', $article->enddate)->format('d-m-Y'));
 	
+		$objlanguages = $this->getInformation($id);
+		$objselected_pages = $this->getSelectedPages($id);
+		
+		// show the edit form and pass the nerd
+		return View::make('dcms::articles/articles/form')
+			->with('article', $article)
+			->with('languages', $objlanguages)
+			->with('categoryOptionValues',CategoryID::OptionValueArray(false))
+			->with('pageOptionValues',Pagetree::OptionValueArray(false))
+			->with('pageOptionValuesSelected',$this->setPageOptionValues($objselected_pages))
+			->with('sortOptionValues',$this->getSortOptions($objlanguages));
+	}
 	
 	/**
 	 * copy the model
@@ -334,10 +287,15 @@ class ArticleController extends BaseController {
 				if ((is_null($givenlanguage_id) || ($language_id == $givenlanguage_id)))
 				{
 					$Detail = null;
+					$newInformation = true;
 					$Detail = Detail::find($input["article_information_id"][$language_id]);
-					if (is_null($Detail) === true)	$Detail = new Detail(); 
+					if (is_null($Detail) === true)	$Detail = new Detail(); else $newInformation = false; 
+					
+					$oldSortID = null;			
+					if ($newInformation == false && !is_null($Detail->sort_id) && intval($Detail->sort_id)>0) $oldSortID = intval($Detail->sort_id);
 					
 					$Detail->language_id 					= $language_id;
+					$Detail->sort_id		 					= $input["article_information_sort_id"][$language_id];
 					$Detail->article_category_id 	= ($input["category_id"][$language_id]==0?NULL:$input["category_id"][$language_id]);
 					$Detail->title 								= $input["title"][$language_id];
 					$Detail->description 					= $input["description"][$language_id];
@@ -352,6 +310,47 @@ class ArticleController extends BaseController {
 					//Article::find($Article->id)->detail()->save($Detail);
 					$Article->detail()->save($Detail);
 					//$Article->detail()->attach($Detail->id); //does not seem to work.. what's the difference with attach vs save
+					
+					
+					$sort_incrementstatus = "0"; //the default
+					if(is_null($oldSortID) || $oldSortID == 0)
+					{
+						//update all where sortid >= input::sortid
+						$updateInformations = Detail::where('language_id','=',$language_id)->where('sort_id','>=',$input["article_information_sort_id"][$language_id])->where('id','<>',$Detail->id)->get(array('id','sort_id'));
+						$sort_incrementstatus = "+1";
+					}
+					elseif ( isset($input["article_information_sort_id"][$language_id]) && $oldSortID > $input["article_information_sort_id"][$language_id])
+					{	
+						$updateInformations = Detail::where('language_id','=',$language_id)->where('sort_id','>=',$input["article_information_sort_id"][$language_id])->where('sort_id','<',$oldSortID)->where('id','<>',$Detail->id)->get(array('id','sort_id'));
+						$sort_incrementstatus = "+1";
+					}
+					elseif (isset($input["article_information_sort_id"][$language_id]) && $oldSortID < $input["article_information_sort_id"][$language_id])
+					{	
+						$updateInformations = Detail::where('language_id','=',$language_id)->where('sort_id','>',$oldSortID)->where('sort_id','<=',$input["article_information_sort_id"][$language_id])->where('id','<>',$Detail->id)->get(array('id','sort_id'));
+						$sort_incrementstatus = "-1";
+					}
+					
+					if ($sort_incrementstatus <> "0")
+					{
+						if (isset($updateInformations) && count($updateInformations)>0)
+						{
+							//$uInformation for object Information :: update the Information
+							foreach($updateInformations as $uInformation)
+							{
+								if($sort_incrementstatus == "+1") 
+								{
+									$uInformation->sort_id = intval($uInformation->sort_id) + 1;
+									$uInformation->save();
+								}
+								elseif($sort_incrementstatus == "-1") 
+								{
+									$uInformation->sort_id = intval($uInformation->sort_id) - 1 ;
+									$uInformation->save();
+								}
+							}//end foreach($updateInformations as $Information)
+						}//end 	if (count($updateInformations)>0)
+					}//$sort_incrementstatus <> "0"
+					
 					
 					//----------------------------------------
 					// Detach the $Detail from all pages
@@ -396,90 +395,6 @@ class ArticleController extends BaseController {
 			Session::flash('message', 'Successfully updated article!');
 			return Redirect::to('admin/articles');
 		}else return  $this->validateArticleForm();
-
-/*		
-		// validate
-		// read more on validation at http://laravel.com/docs/validation
-		$rules = array(
-			//'title' => 'required',
-		);
-		$validator = Validator::make(Input::all(), $rules);
-
-		// process the login
-		if ($validator->fails()) 
-		{
-			return Redirect::to('admin/articles/' . $id . '/edit')
-				->withErrors($validator)
-				->withInput();
-		} 
-		else 
-		{
-			// store
-			$Article = Article::find($id);
-			
-			$input = Input::get();
-			foreach($input["title"] as $language_id  => $title)
-			{
-				if (strlen(trim($title))>0) //we don't want to populate the database when there is no title given
-				{
-					if (!isset($Article) || is_null($Article) )
-					{
-						$Article = new Article;
-					}
-
-					$Article->startdate = (!empty($input["startdate"]) ? DateTime::createFromFormat('d-m-Y', $input["startdate"])->format('Y-m-d') : null);
-					$Article->enddate 	= (!empty($input["enddate"]) ? DateTime::createFromFormat('d-m-Y', $input["enddate"])->format('Y-m-d') : null);
-					$Article->thumbnail = $input["thumbnail"];
-					$Article->admin 		=  Auth::user()->username;
-					$Article->save();
-					
-					$Detail = Detail::find($input["article_information_id"][$language_id]);
-					if (is_null($Detail) === true)
-					{
-						$Detail = new Detail();
-					}
-					
-					$Detail->language_id 					= $language_id;
-					$Detail->article_category_id 	= ($input["category_id"][$language_id]==0?NULL:$input["category_id"][$language_id]);
-					$Detail->title 								= $input["title"][$language_id];
-					$Detail->description 					= $input["description"][$language_id];
-					$Detail->body 								= $input["body"][$language_id];
-				
-					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
-					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
-					
-					$Detail->admin 								=  Auth::user()->username;
-					$Detail->save();	
-					
-					Article::find($Article->id)->detail()->save($Detail);
-					
-					//----------------------------------------
-					// Detach the $Detail from all pages
-					//----------------------------------------
-					$Detail->pages()->detach();		
-					
-					//----------------------------------------
-					// link the article to the selected page
-					// we will take the $Detail->id since
-					// this directly holds the language_id
-					// otherwise we'd be storing it twice
-					//----------------------------------------
-					if(count($input["page_id"][$language_id])>0)
-					{
-						foreach($input["page_id"][$language_id] as $arrayindex => $page_id)
-						{
-							//Detail::find($Detail->id)->pages->save($page_id);
-							$Detail->pages()->attach($page_id);		
-						}
-					}//end - if(count($input["page_id"][$language_id])>0)
-				}
-			}//end foreach
-			
-			// redirect
-			Session::flash('message', 'Successfully updated article!');
-			return Redirect::to('admin/articles');
-		}
-		*/
 	}
 
 	/**
@@ -494,6 +409,18 @@ class ArticleController extends BaseController {
 		$Detail = Detail::find($id);
 		
 		$mainArticleID = $Detail->article_id;
+		
+		//find the sortid of this product... so all the above can descent by 1
+		$updateInformations = Detail::where('language_id','=',$Detail->language_id)->where('sort_id','>',$Detail->sort_id)->get(array('id','sort_id'));
+		if (isset($updateInformations) && count($updateInformations)>0)
+		{
+			//$uInformation for object Information :: update the Information
+			foreach($updateInformations as $uInformation)
+			{
+				$uInformation->sort_id = intval($uInformation->sort_id) - 1 ;
+				$uInformation->save();
+			}//end foreach($updateInformations as $Information)
+		}//end 	if (count($updateInformations)>0)
 		
 		$Detail->delete();
 		

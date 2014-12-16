@@ -45,7 +45,16 @@
 
                     <div id="{{ $information->language . '-' . $information->country }}" class="tab-pane {{ ($key == 0 ? 'active' : '') }}">
 
-                      {{ Form::hidden('article_information_id[' . $information->language_id . ']', $information->id) }}								
+                      {{ Form::hidden('article_information_id[' . $information->language_id . ']', $information->id) }}	
+                      
+                      
+                                    
+                      <div class="form-group">
+                        {{ Form::label('article_information_sort_id[' . $key . ']', 'Sort') }}
+                        {{ Form::select('article_information_sort_id[' . $key . ']', $sortOptionValues[$information->language_id], (Input::old('article_information_sort_id[' . $key . ']') ? Input::old('article_information_sort_id[' . $key . ']') : $information->sort_id), array('class' => 'form-control')) }}
+                      </div>
+                                         
+                      							
                                                     
                       <div class="form-group">
                         {{ Form::label('category_id[' . $information->language_id . ']', 'Category') }}
@@ -67,10 +76,12 @@
                         {{ Form::textarea('body[' . $information->language_id . ']', (Input::old('body[' . $information->language_id . ']') ? Input::old('body[' . $information->language_id . ']') : $information->body ), array('class' => 'form-control')) }}
                       </div>
                                                                         
+                      <!--                                
                       <div class="form-group">
                       {{ Form::label('page_id[' . $information->language_id . ']', 'Page') }}
                       {{ isset($pageOptionValues[$information->language_id])? Form::select('page_id[' . $information->language_id . '][]', $pageOptionValues[$information->language_id], (Input::old('page_id[' . $information->language_id . ']') ? Input::old('page_id[' . $information->language_id . ']') : (isset($pageOptionValuesSelected[$information->id]) && count($pageOptionValuesSelected[$information->id])>0)?$pageOptionValuesSelected[$information->id]:''), array('multiple','class' => 'form-control')):'No pages found' }}
                       </div>
+                      -->
                                                                         
                     </div>
                     

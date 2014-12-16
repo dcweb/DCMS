@@ -19,6 +19,10 @@ use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 class ProductController extends BaseController {
 
+
+	public $extendInformationBlock = "";  //holds some HTML or laravel 
+	public $extendTabs = array();// (multi dimensional array // e.g. array(array('tabname'=>'friendlyname','tabcontent'=>'all kinds of html'),..);
+	
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -278,11 +282,14 @@ left join countries as settings on languages.country_id = settings.id
 	public function create()
 	{
 		//available languages
-		$languageinformation = DB::connection("project")->table("languages")->select( (DB::connection("project")->raw("'' as title, '' as description, NULL as sort_id, (select max(sort_id) from products_information where language_id = languages.id) as maxsort, '' as information_id, '' as id , '' as product_category_id")), "id as language_id", "language","language_name","country")->get();
+		//$languageinformation = DB::connection("project")->table("languages")->select( (DB::connection("project")->raw("'' as title, '' as description, NULL as sort_id, (select max(sort_id) from products_information where language_id = languages.id) as maxsort, '' as information_id, '' as id , '' as product_category_id")), "id as language_id", "language","language_name","country")->get();
+		
+		$languageinformation = $this->getInformation();		
 				
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::products/products/form')
-					->with('languageinformation',$languageinformation)
+					->with('languageinformation', $languageinformation)
+					->with('informationtemplate', null) //giving null will make a fallback to the default productinformation template on the package
 					->with('volumeclasses',$this->getVolumesClasses("array"))
 					->with('taxclasses',$this->getTaxClasses("array"))
 					->with('categoryOptionValues',Categorytree::OptionValueTreeArray(false)) //CategoryID::OptionValueArray(true)) //category::optionvaluearray will return a multidimensional array $a[languageid][catid]=catTitle;
@@ -471,19 +478,17 @@ left join countries as settings on languages.country_id = settings.id
 				return Redirect::to('admin/products');
 			}else return  $this->validateProductForm();
 	}
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function edit($id)
+	
+	public function getInformation($id = null)
 	{
-		// get the Product
-		$product = Product::find($id);	
-		
-		$languageinformation = DB::connection("project")->select('
+		if (is_null($id))
+		{
+			return DB::connection("project")->table("languages")->select( (DB::connection("project")->raw("'' as title, '' as description, NULL as sort_id, (select max(sort_id) from products_information where language_id = languages.id) as maxsort, '' as information_id, '' as id , '' as product_category_id")), "id as language_id", "language","language_name","country")->get();
+				
+		}
+		else
+		{
+			return DB::connection("project")->select('
 														SELECT products_information.language_id ,sort_id, (select max(sort_id) from products_information as X  where X.language_id = products_information.language_id) as maxsort, language, language_name, country, products_information.title, products_information.description, products_information.id as information_id, product_category_id
 														FROM  products
 														INNER JOIN products_to_products_information on products.id = products_to_products_information.product_id
@@ -496,9 +501,27 @@ left join countries as settings on languages.country_id = settings.id
 														FROM languages 
 														WHERE id NOT IN (SELECT language_id FROM products_information WHERE id IN (SELECT product_information_id FROM products_to_products_information WHERE product_id = ?)) ORDER BY 1 ', array($id,$id));
 		
+		}
+	}
+	
+	
+
+	/**
+	 * Show the form for editing the specified resource.
+	 *
+	 * @param  int  $id
+	 * @return Response
+	 */
+	public function edit($id)
+	{
+		// get the Product
+		$product = Product::find($id);	
+			
 		//build the rows with the prices based on the query result / model
 		$mPrices= DB::connection("project")->select('SELECT products_price.id , country_id, product_id, country_name, price, valuta_class_id, tax_class_id FROM products_price INNER JOIN countries ON countries.id = products_price.country_id WHERE product_id = ? ',array($id));
 		$rowPrices = $this->getPriceRow($mPrices);
+		
+		$languageinformation = $this->getInformation($id);
 		
 		// show the edit form and pass the product
 		return View::make('dcms::products/products/form')

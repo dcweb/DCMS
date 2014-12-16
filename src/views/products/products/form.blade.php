@@ -92,61 +92,19 @@
                       @if(isset($languageinformation))
                                             
                           <ul class="nav nav-tabs" role="tablist">
-                      @foreach($languageinformation as $key => $language)
-                          	<li class="{{ ($key == 0 ? 'active' : '') }}"><a href="{{ '#' . $language->language . '-' . $language->country }}" role="tab" data-toggle="tab"><img src="{{ asset('packages/dcweb/dcms/assets/images/flag-' . $language->country . '.png') }}" width="18" height="12" /> {{ $language->language_name }}</a></li>
-                      @endforeach
+                            @foreach($languageinformation as $key => $language)
+                                  <li class="{{ ($key == 0 ? 'active' : '') }}"><a href="{{ '#' . $language->language . '-' . $language->country }}" role="tab" data-toggle="tab"><img src="{{ asset('packages/dcweb/dcms/assets/images/flag-' . $language->country . '.png') }}" width="18" height="12" /> {{ $language->language_name }}</a></li>
+                            @endforeach
                           </ul>
 
                           <div class="tab-content">
-                      @foreach($languageinformation as $key => $information)
-
-                          	<div id="{{ $information->language . '-' . $information->country }}" class="tab-pane {{ ($key == 0 ? 'active' : '') }}">
-
-                              {{ Form::hidden('information_language_id[' . $key . ']', $information->language_id) }}								
-                                                            
-                              <div class="form-group">
-                                {{ Form::label('information_category_id[' . $key . ']', 'Category') }}
-                                {{ isset($categoryOptionValues[$information->language_id])? Form::select('information_category_id[' . $key . ']', $categoryOptionValues[$information->language_id], (Input::old('information_category_id[' . $key . ']') ? Input::old('information_category_id[' . $key . ']') : $information->product_category_id), array('class' => 'form-control')):'' }}
-                              </div>   
-                              
-                                        
-                              <div class="form-group">
-                           		  {{ Form::label('information_sort_id[' . $key . ']', 'Sort') }}
-                                {{ Form::select('information_sort_id[' . $key . ']', $sortOptionValues[$information->language_id], (Input::old('information_sort_id[' . $key . ']') ? Input::old('information_sort_id[' . $key . ']') : $information->sort_id), array('class' => 'form-control')) }}
-                              </div>
-                                                            
-                              <div class="row">
-                                <div class="col-sm-10">
-                                
-                                  <div class="form-group">
-                                    {{ Form::label('information_name[' . $key . ']', 'Product Name') }}
-                                    {{ Form::text('information_name[' . $key . ']', (Input::old('information_name[' . $key . ']') ? Input::old('information_name[' . $key . ']') : $information->title ), array('class' => 'form-control')) }}
-                                  </div>
-                                                                                  
-                                </div>
-                                <div class="col-sm-2">
-                                
-                                  <div class="form-group">
-                                    {{ Form::label('information_id[' . $key . ']', 'ID') }}
-                                    <div class="input-group">
-                                        {{ Form::text('information_id[' . $key . ']', (Input::old('information_id[' . $key . ']') ? Input::old('information_id[' . $key . ']') : $information->information_id ), array('class' => 'form-control', 'readonly')) }}
-                                      <span class="input-group-btn">
-                                        {{ Form::button('Reset', array('class' => 'btn btn-primary information-id-reset')) }}
-                                      </span>
-                                    </div>
-                                  </div>
-                                
-                                </div>
-                              </div>
-                              
-                              <div class="form-group">
-                                {{ Form::label('information_description[' . $key . ']', 'Description') }}
-                                {{ Form::textarea('information_description[' . $key . ']', (Input::old('information_description[' . $key . ']') ? Input::old('information_description[' . $key . ']') : $information->description ), array('class' => 'form-control')) }}
-                              </div>
-                                                                                
-                            </div>
-                            
-                      @endforeach
+                          		@if(!isset($informationtemplate) || is_null($informationtemplate) )
+                                @include('dcms::products/products/templates/information', array('languageinformation'=>$languageinformation,'sortOptionValues'=>$sortOptionValues))
+                                @yield('information')
+                              @else
+	                              @include($informationtemplate, array('languageinformation'=>$languageinformation,'sortOptionValues'=>$sortOptionValues))
+                                @yield('information')
+                              @endif
                           </div>
 
                       @endif
