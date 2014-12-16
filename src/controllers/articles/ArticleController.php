@@ -20,6 +20,8 @@ use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 
 class ArticleController extends BaseController {
+	
+	public $enableArticleToPage = false;
 
 	/**
 	 * Display a listing of the resource.
@@ -97,7 +99,8 @@ class ArticleController extends BaseController {
 					->with('languages',$languages)
 					->with('categoryOptionValues',CategoryID::OptionValueArray(false))
 					->with('pageOptionValues',Pagetree::OptionValueArray(false))
-					->with('sortOptionValues',$this->getSortOptions($languages,1));
+					->with('sortOptionValues',$this->getSortOptions($languages,1))
+					->with('enableArticleToPage',$this->enableArticleToPage);
 	}
 
 	/**
@@ -202,7 +205,8 @@ class ArticleController extends BaseController {
 			->with('categoryOptionValues',CategoryID::OptionValueArray(false))
 			->with('pageOptionValues',Pagetree::OptionValueArray(false))
 			->with('pageOptionValuesSelected',$this->setPageOptionValues($objselected_pages))
-			->with('sortOptionValues',$this->getSortOptions($objlanguages));
+			->with('sortOptionValues',$this->getSortOptions($objlanguages))
+			->with('enableArticleToPage',$this->enableArticleToPage);
 	}
 	
 	/**

@@ -47,13 +47,7 @@
 
                       {{ Form::hidden('article_information_id[' . $information->language_id . ']', $information->id) }}	
                       
-                      
-                                    
-                      <div class="form-group">
-                        {{ Form::label('article_information_sort_id[' . $key . ']', 'Sort') }}
-                        {{ Form::select('article_information_sort_id[' . $key . ']', $sortOptionValues[$information->language_id], (Input::old('article_information_sort_id[' . $key . ']') ? Input::old('article_information_sort_id[' . $key . ']') : $information->sort_id), array('class' => 'form-control')) }}
-                      </div>
-                                         
+                                 
                       							
                                                     
                       <div class="form-group">
@@ -65,6 +59,13 @@
                         {{ Form::label('title[' . $information->language_id . ']', 'Title') }}
                         {{ Form::text('title[' . $information->language_id . ']', (Input::old('title[' . $information->language_id . ']') ? Input::old('title[' . $information->language_id . ']') : $information->title ), array('class' => 'form-control')) }}
                       </div>
+                      
+                                    
+                      <div class="form-group">
+                        {{ Form::label('article_information_sort_id[' . $information->language_id . ']', 'Sort') }}
+                        {{ Form::select('article_information_sort_id[' . $information->language_id . ']', $sortOptionValues[$information->language_id], (Input::old('article_information_sort_id[' . $information->language_id . ']') ? Input::old('article_information_sort_id[' . $information->language_id . ']') : $information->sort_id), array('class' => 'form-control')) }}
+                      </div>
+                              
                   
                       <div class="form-group">
                         {{ Form::label('description[' . $information->language_id . ']', 'Description') }}
@@ -75,13 +76,13 @@
                         {{ Form::label('body[' . $information->language_id . ']', 'Body') }}
                         {{ Form::textarea('body[' . $information->language_id . ']', (Input::old('body[' . $information->language_id . ']') ? Input::old('body[' . $information->language_id . ']') : $information->body ), array('class' => 'form-control')) }}
                       </div>
-                                                                        
-                      <!--                                
+                                   
+											@if(isset($enableArticleToPage) && $enableArticleToPage == true)
                       <div class="form-group">
                       {{ Form::label('page_id[' . $information->language_id . ']', 'Page') }}
                       {{ isset($pageOptionValues[$information->language_id])? Form::select('page_id[' . $information->language_id . '][]', $pageOptionValues[$information->language_id], (Input::old('page_id[' . $information->language_id . ']') ? Input::old('page_id[' . $information->language_id . ']') : (isset($pageOptionValuesSelected[$information->id]) && count($pageOptionValuesSelected[$information->id])>0)?$pageOptionValuesSelected[$information->id]:''), array('multiple','class' => 'form-control')):'No pages found' }}
                       </div>
-                      -->
+                      @endif
                                                                         
                     </div>
                     

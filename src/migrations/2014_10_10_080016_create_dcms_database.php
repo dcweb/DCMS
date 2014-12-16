@@ -62,6 +62,7 @@ class CreateDCMSDatabase extends Migration {
                 $table->integer('language_id')->nullable()->default("1");
                 $table->integer('article_category_id')->nullable();
                 $table->integer('article_id')->nullable();
+                $table->integer('sort_id')->nullable();
                 $table->string('title', 255);
                 $table->text('description')->nullable();
                 $table->text('body')->nullable();
