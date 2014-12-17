@@ -28,7 +28,7 @@
           <div class="col-sm-2">
           
             <div class="form-group">
-              {{ Form::label('information_id[' . $key . ']', 'ID') }}
+              {{ Form::label('information_id[' . $key . ']', 'ID') }} 
               <div class="input-group">
                   {{ Form::text('information_id[' . $key . ']', (Input::old('information_id[' . $key . ']') ? Input::old('information_id[' . $key . ']') : $information->information_id ), array('class' => 'form-control', 'readonly')) }}
                 <span class="input-group-btn">
@@ -42,7 +42,7 @@
         
         <div class="form-group">
           {{ Form::label('information_description[' . $key . ']', 'Description') }}
-          {{ Form::textarea('information_description[' . $key . ']', (Input::old('information_description[' . $key . ']') ? Input::old('information_description[' . $key . ']') : $information->description ), array('class' => 'form-control')) }}
+          {{ Form::textarea('information_description[' . $key . ']', (Input::old('information_description[' . $key . ']') ? Input::old('information_description[' . $key . ']') : $information->description ), array('class' => 'form-control ckeditor')) }}
         </div>
                                                           
       </div>

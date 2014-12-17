@@ -66,15 +66,14 @@
                         {{ Form::select('article_information_sort_id[' . $information->language_id . ']', $sortOptionValues[$information->language_id], (Input::old('article_information_sort_id[' . $information->language_id . ']') ? Input::old('article_information_sort_id[' . $information->language_id . ']') : $information->sort_id), array('class' => 'form-control')) }}
                       </div>
                               
-                  
                       <div class="form-group">
                         {{ Form::label('description[' . $information->language_id . ']', 'Description') }}
-                        {{ Form::textarea('description[' . $information->language_id . ']', (Input::old('description[' . $information->language_id . ']') ? Input::old('description[' . $information->language_id . ']') : $information->description ), array('class' => 'form-control')) }}
+                        {{ Form::textarea('description[' . $information->language_id . ']', (Input::old('description[' . $information->language_id . ']') ? Input::old('description[' . $information->language_id . ']') : $information->description ), array('class' => 'form-control ckeditor')) }}
                       </div>
                                                                         
                       <div class="form-group">
                         {{ Form::label('body[' . $information->language_id . ']', 'Body') }}
-                        {{ Form::textarea('body[' . $information->language_id . ']', (Input::old('body[' . $information->language_id . ']') ? Input::old('body[' . $information->language_id . ']') : $information->body ), array('class' => 'form-control')) }}
+                        {{ Form::textarea('body[' . $information->language_id . ']', (Input::old('body[' . $information->language_id . ']') ? Input::old('body[' . $information->language_id . ']') : $information->body ), array('class' => 'form-control ckeditor')) }}
                       </div>
                                    
 											@if(isset($enableArticleToPage) && $enableArticleToPage == true)
@@ -163,8 +162,7 @@ $(document).ready(function() {
 	})
 	
 	//CKEditor
-	$("textarea[id^='description']").ckeditor();
-	$("textarea[id^='body']").ckeditor();
+	$("textarea.ckeditor").ckeditor();
 
 	//Bootstrap Tabs
 	$(".tab-container .nav-tabs a").click(function (e) {

@@ -172,7 +172,7 @@ $(document).ready(function() {
 	CKFinder.setupCKEditor( null, '/ckfinder/' );
 	
 	//CKEditor
-	$("textarea[id^='information_description']").ckeditor();
+	$("textarea.ckeditor").ckeditor();
 	
 	//CKFinder 
 	$(".browse-server").click(function() {
