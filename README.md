@@ -11,7 +11,7 @@ Require this package
 1. cmd:  composer require 
           dcweb
 
-1.1 MARK!! using Ollieread/multiaut ==> https://github.com/ollieread/multiauth
+1.1. MARK!! using Ollieread/multiaut ==> https://github.com/ollieread/multiauth
 		- **Author**: Ollie Read 
 		- **Author Homepage**: http://ollieread.com
 		since we're using this package we need to keep in mind some Auth tweaks..
@@ -38,6 +38,7 @@ Require this package
 5. MultiAuth: Configuration is pretty easy too, take app/config/auth.php from your root laravel installation with its default values:
 
     return array(
+		
 			'driver' => 'eloquent',
 			'model' => 'User',
 			'table' => 'users',
@@ -46,22 +47,25 @@ Require this package
 				'table' => 'password_reminders',
 				'expire' => 60,
 			),
+			
 		);
 
-5.1 Now remove the first three options and replace as follows:
+5.1. Now remove the first three options and replace as follows:
 
     return array(
-			'user' => array(
-				'driver' => 'database',
-				'table' => 'users'
-			)
-		),
+			
+				'multi' => array(
+						'user' => array(
+								'driver' => 'eloquent',
+								'table' => 'User'
+						)
+				),
 	
-		'reminder' => array(
-			'email' => 'emails.auth.reminder',
-			'table' => 'password_reminders',
-			'expire' => 60,
-		),
+			'reminder' => array(
+				'email' => 'emails.auth.reminder',
+				'table' => 'password_reminders',
+				'expire' => 60,
+			),
 	);
 
 5.2 A neccesary update to the app/filters.php adding the user configuration to the filter and others:
