@@ -15,7 +15,7 @@ return array(
 	|
 	*/
 
-	'driver' => 'eloquent',
+	//'driver' => 'eloquent',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -28,7 +28,7 @@ return array(
 	|
 	*/
 
-	'model' => 'Dcweb\Dcms\Models\Users\User',
+	//'model' => 'Dcweb\Dcms\Models\Users\User',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -41,7 +41,15 @@ return array(
 	|
 	*/
 
-	'table' => 'users',
+	//'table' => 'users',
+
+
+	  'multi' => array(
+        'dcms' => array(
+            'driver' => 'eloquent',
+            'model' =>  'Dcweb\Dcms\Models\Users\User',
+        )
+    ),
 
 	/*
 	|--------------------------------------------------------------------------

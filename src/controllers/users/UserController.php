@@ -27,10 +27,10 @@ class UserController extends BaseController {
       if ($validator->passes()) {
         $credentials = $this->getLoginCredentials();
   
-        if (Auth::attempt($credentials)) {
+        if (Auth::dcms()->attempt($credentials)) {
 					session_start();
 					$_SESSION["admin"]["allow_ckfinder"] = true;
-					return Redirect::intended("admin/dashboard"); //intended will keep in mind your entry point, if none has been found a default is given
+					  return Redirect::intended("admin/dashboard"); //intended will keep in mind your entry point, if none has been found a default is given
         //  return Redirect::route("admin/dashboard");
         }
   
@@ -76,7 +76,7 @@ class UserController extends BaseController {
 	
 	public function logout()
 	{
-	  Auth::logout();
+	  Auth::dcms()->logout();
 	  
 	  return Redirect::route("admin/users/login");
 	}
@@ -174,7 +174,6 @@ class UserController extends BaseController {
 	
 	public function getDatatable()
 	{
-	
 		return Datatable::Query(DB::connection("project")->table("users"))
 						->showColumns('name')
 						->showColumns('email')

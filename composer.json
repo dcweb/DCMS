@@ -11,7 +11,8 @@
     "require": {
         "php": ">=5.3.0",
         "chumper/datatable": "2.*",
-				"barryvdh/laravel-debugbar": "1.x"
+				"barryvdh/laravel-debugbar": "1.x",
+				"ollieread/multiauth": "~3.3"
     },
     "autoload": {
         "classmap": [
@@ -27,4 +28,3 @@
     },
     "minimum-stability": "stable"
 }
- 

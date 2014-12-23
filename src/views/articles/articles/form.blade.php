@@ -66,6 +66,7 @@
                         {{ Form::select('article_information_sort_id[' . $information->language_id . ']', $sortOptionValues[$information->language_id], (Input::old('article_information_sort_id[' . $information->language_id . ']') ? Input::old('article_information_sort_id[' . $information->language_id . ']') : $information->sort_id), array('class' => 'form-control')) }}
                       </div>
                               
+                  
                       <div class="form-group">
                         {{ Form::label('description[' . $information->language_id . ']', 'Description') }}
                         {{ Form::textarea('description[' . $information->language_id . ']', (Input::old('description[' . $information->language_id . ']') ? Input::old('description[' . $information->language_id . ']') : $information->description ), array('class' => 'form-control ckeditor')) }}

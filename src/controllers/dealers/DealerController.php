@@ -174,7 +174,7 @@ class DealerController extends BaseController {
 			$dealer->website = Input::get("website");
 			$dealer->longitude = $latlon["lon"];
 			$dealer->latitude = $latlon["lat"];
-			$dealer->admin =  Auth::user()->username;
+			$dealer->admin =  Auth::dcms()->user()->username;
 			$dealer->save();
 
 			
@@ -277,7 +277,7 @@ class DealerController extends BaseController {
 			$dealer->website = Input::get("website");
 			$dealer->longitude = $latlon["lon"];
 			$dealer->latitude = $latlon["lat"];
-			$dealer->admin =  Auth::user()->username;
+			$dealer->admin =  Auth::dcms()->user()->username;
 			$dealer->save();
 		
 			// redirect

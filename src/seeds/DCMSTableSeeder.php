@@ -59,7 +59,7 @@ class DCMSTableSeeder extends Seeder {
         DB::table('pages')->insert(array(
             
             array(
-                'id' => 1,
+                'id' => 0,
                 'parent_id' => NULL,
                 'sort_id' => 0,
                 'admin' => 'DB-migration',
@@ -73,7 +73,7 @@ class DCMSTableSeeder extends Seeder {
             array(
                 'id' => 1,
                 'language_id' => 1,
-                'page_id' => 1,
+                'page_id' => 0,
                 'title' => '- ROOT -',
                 'body' => 'root',
                 'url_path' => 'root',
@@ -86,7 +86,7 @@ class DCMSTableSeeder extends Seeder {
             array(
                 'id' => 2,
                 'language_id' => 2,
-                'page_id' => 1,
+                'page_id' => 0,
                 'title' => '- ROOT -',
                 'body' => 'root',
                 'url_path' => 'root',
@@ -99,7 +99,7 @@ class DCMSTableSeeder extends Seeder {
             array(
                 'id' => 3,
                 'language_id' => 3,
-                'page_id' => 1,
+                'page_id' => 0,
                 'title' => '- ROOT -',
                 'body' => 'root',
                 'url_path' => 'root',
@@ -113,7 +113,7 @@ class DCMSTableSeeder extends Seeder {
         DB::table('products_categories')->insert(array(
             
             array(
-                'id' => 1,
+                'id' => 0,
                 'parent_id' => NULL,
                 'sort_id' => NULL,
                 'admin' => NULL,
@@ -126,7 +126,7 @@ class DCMSTableSeeder extends Seeder {
             
             array(
                 'id' => 1,
-                'product_category_id' => 1,
+                'product_category_id' => 0,
                 'language_id' => 1,
                 'title' => '- ROOT -',
                 'url_slug' => 'root',
@@ -138,7 +138,7 @@ class DCMSTableSeeder extends Seeder {
 
             array(
                 'id' => 2,
-                'product_category_id' => 1,
+                'product_category_id' => 0,
                 'language_id' => 2,
                 'title' => '- ROOT -',
                 'url_slug' => 'root',
@@ -150,7 +150,7 @@ class DCMSTableSeeder extends Seeder {
 
             array(
                 'id' => 3,
-                'product_category_id' => 1,
+                'product_category_id' => 0,
                 'language_id' => 3,
                 'title' => '- ROOT -',
                 'url_slug' => 'root',

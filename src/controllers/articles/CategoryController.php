@@ -111,7 +111,7 @@ class CategoryController extends BaseController {
 							if(!isset($category))
 							{
 									$category = new CategoryID;
-									$category->admin =  Auth::user()->username;
+									$category->admin =  Auth::dcms()->user()->username;
 									$category->save();
 							}
 							$translatedCategory = new Category; 
@@ -121,7 +121,7 @@ class CategoryController extends BaseController {
 							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
-							$translatedCategory->admin =  Auth::user()->username;
+							$translatedCategory->admin =  Auth::dcms()->user()->username;
 							$translatedCategory->save();			
 							CategoryID::find($category->id)->category()->save($translatedCategory);
 					}//end trim strlen title
@@ -191,7 +191,7 @@ class CategoryController extends BaseController {
 			if (isset($input["title"]) && count($input["title"])>0)
 			{
 				$category = CategoryID::find($id);
-				$category->admin =  Auth::user()->username;
+				$category->admin =  Auth::dcms()->user()->username;
 				
 				foreach($input["title"] as $language_id => $title)
 				{
@@ -200,7 +200,7 @@ class CategoryController extends BaseController {
 							if(!isset($category))
 							{
 									$category = new CategoryID;
-									$category->admin =  Auth::user()->username;
+									$category->admin =  Auth::dcms()->user()->username;
 									$category->save();
 							}
 							
@@ -215,7 +215,7 @@ class CategoryController extends BaseController {
 							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
-							$translatedCategory->admin =  Auth::user()->username;
+							$translatedCategory->admin =  Auth::dcms()->user()->username;
 							$translatedCategory->save();			
 							CategoryID::find($category->id)->category()->save($translatedCategory);
 					}//end trim strlen title

@@ -132,7 +132,7 @@ class CategoryController extends BaseController {
 									$category = new CategoryID;
 									$category->parent_id = $input["parent_id"];
 									$category->sort_id = $input["sort_id"];
-									$category->admin =  Auth::user()->username;
+									$category->admin =  Auth::dcms()->user()->username;
 									$category->save();
 							}
 							$translatedCategory = new Category; 
@@ -142,7 +142,7 @@ class CategoryController extends BaseController {
 							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
-							$translatedCategory->admin =  Auth::user()->username;
+							$translatedCategory->admin =  Auth::dcms()->user()->username;
 							$translatedCategory->save();			
 							CategoryID::find($category->id)->category()->save($translatedCategory);
 					}//end trim strlen title
@@ -199,7 +199,7 @@ class CategoryController extends BaseController {
 		$category = CategoryID::find($id);
 		
 			$Newcategory = new CategoryID;
-			$Newcategory->admin =  Auth::user()->username;
+			$Newcategory->admin =  Auth::dcms()->user()->username;
 			$Newcategory->save();
 	*/
 		return Redirect::to('admin/products/categories');
@@ -235,7 +235,7 @@ class CategoryController extends BaseController {
 			if (isset($input["title"]) && count($input["title"])>0)
 			{
 				$category = CategoryID::find($id);
-				$category->admin =  Auth::user()->username;
+				$category->admin =  Auth::dcms()->user()->username;
 				$category->parent_id = $input["parent_id"];
 				$category->sort_id = $input["sort_id"];
 				
@@ -248,7 +248,7 @@ class CategoryController extends BaseController {
 									$category = new CategoryID;
 									$category->parent_id = $input["parent_id"];
 									$category->sort_id = $input["sort_id"];
-									$category->admin =  Auth::user()->username;
+									$category->admin =  Auth::dcms()->user()->username;
 									$category->save();
 							}
 							
@@ -263,7 +263,7 @@ class CategoryController extends BaseController {
 							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
-							$translatedCategory->admin =  Auth::user()->username;
+							$translatedCategory->admin =  Auth::dcms()->user()->username;
 							$translatedCategory->save();			
 							CategoryID::find($category->id)->category()->save($translatedCategory);
 					}//end trim strlen title

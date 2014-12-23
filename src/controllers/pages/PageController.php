@@ -137,7 +137,7 @@ class PageController extends BaseController {
 						$Page = new Page;
 						$Page->parent_id = $input["parent_id"];
 						$Page->sort_id	= $input["sort_id"];
-						$Page->admin =  Auth::user()->username;
+						$Page->admin =  Auth::dcms()->user()->username;
 						$Page->save();
 					}
 				
@@ -150,7 +150,7 @@ class PageController extends BaseController {
 					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					
-					$Detail->admin 				= Auth::user()->username;
+					$Detail->admin 				= Auth::dcms()->user()->username;
 					$Detail->save();		
 					Page::find($Page->id)->detail()->save($Detail);
 				}//if title is set
@@ -237,7 +237,7 @@ class PageController extends BaseController {
 						$Page = new Page;
 					}
 
-					$Page->admin 			=  Auth::user()->username;
+					$Page->admin 			=  Auth::dcms()->user()->username;
 					$Page->parent_id 	= $input["parent_id"];
 					$Page->sort_id 		= $input["sort_id"];
 					$Page->save();
@@ -255,7 +255,7 @@ class PageController extends BaseController {
 					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					
-					$Detail->admin 					=  Auth::user()->username;
+					$Detail->admin 					=  Auth::dcms()->user()->username;
 					$Detail->save();	
 					Page::find($Page->id)->detail()->save($Detail);
 				}

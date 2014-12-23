@@ -20,7 +20,7 @@ Route::group( array("prefix" => "admin"), function() {
 	// Route::any("/request", array("as" => "admin/users/request", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@request"));
 	// Route::any("/reset/{token}", array("as" => "admin/users/reset", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@reset"));
 
-	Route::group(array("before" => "auth"), function() {
+	Route::group(array("before" => "auth.dcms"), function() {
 		/*
 				// DYNAMIC ROUTING : http://stackoverflow.com/questions/20418922/laravel-4-dynamic-routing-overkill
 				Route::any('{controller}/{action?}/{args?}', function($controller, $action = 'index', $args = '')
@@ -127,7 +127,7 @@ Route::group( array("prefix" => "admin"), function() {
 		Route::resource('products','Dcweb\Dcms\Controllers\Products\ProductController');		
 
 		//USERS
-		Route::group(array("before"=>"admin"), function() {
+		Route::group(array("before"=>"admin.dcms"), function() {
 			Route::resource('users','Dcweb\Dcms\Controllers\Users\UserController');		
 			Route::any('users/api/table', array('as'=>'admin/users/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Users\UserController@getDatatable'));
 		});

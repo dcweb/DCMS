@@ -75,6 +75,15 @@ class CreateDCMSDatabase extends Migration {
 
 
 	    /**
+	     * Table: articles_detail_to_pages
+	     */
+	    Schema::create('articles_detail_to_pages', function($table) {
+                $table->integer('article_detail_id');
+                $table->integer('page_id');
+            });
+
+
+	    /**
 	     * Table: countries
 	     */
 	    Schema::create('countries', function($table) {
@@ -623,6 +632,7 @@ SQL;
 	            Schema::drop('articles_categories');
 	            Schema::drop('articles_categories_detail');
 	            Schema::drop('articles_detail');
+	            Schema::drop('articles_detail_to_pages');
 	            Schema::drop('countries');
 	            Schema::drop('dealers');
 	            Schema::drop('languages');

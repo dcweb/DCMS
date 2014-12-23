@@ -30,7 +30,9 @@ class DcmsServiceProvider extends ServiceProvider {
     );
 		
 		// Use package auth
-		$this->app['config']['auth'] = \Config::get('dcms::auth');
+//		$this->app['config']['auth'] = \Config::get('dcms::auth');
+		//array_replace_recursive
+		$this->app['config']['auth'] = array_replace_recursive($this->app["config"]["auth"],\Config::get('dcms::auth'));
 	}
 
 	/**

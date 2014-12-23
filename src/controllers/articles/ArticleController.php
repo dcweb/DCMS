@@ -269,7 +269,7 @@ class ArticleController extends BaseController {
 				$Article->startdate =  (!empty($input["startdate"]) ? DateTime::createFromFormat('d-m-Y', $input["startdate"])->format('Y-m-d') : null);
 				$Article->enddate =  (!empty($input["enddate"]) ? DateTime::createFromFormat('d-m-Y', $input["enddate"])->format('Y-m-d') : null);
 				$Article->thumbnail = $input["thumbnail"];
-				$Article->admin =  Auth::user()->username;
+				$Article->admin =  Auth::dcms()->user()->username;
 				$Article->save();
 				return $Article;
 				break; // we only have to save the global settings once.
@@ -308,7 +308,7 @@ class ArticleController extends BaseController {
 					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 					
-					$Detail->admin 								=  Auth::user()->username;
+					$Detail->admin 								=  Auth::dcms()->user()->username;
 					$Detail->save();	
 					
 					//Article::find($Article->id)->detail()->save($Detail);

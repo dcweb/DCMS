@@ -33,19 +33,19 @@ App::after(function($request, $response)
 |
 */
 
-Route::filter('auth', function()
+Route::filter('auth.dcms', function()
 {
-	if (Auth::guest()) return Redirect::guest('admin/login');
+	if (Auth::dcms()->guest()) return Redirect::guest('admin/login');
 });
 
-Route::filter("admin",function()
+Route::filter("admin.dcms",function()
 {
-	if (Auth::user()->role !== 'administrator') return Redirect::to('admin/dashboard');
+	if (Auth::dcms()->user()->role !== 'administrator') return Redirect::to('admin/dashboard');
 });
 
-Route::filter('auth.basic', function()
+Route::filter('auth.dcms.basic', function()
 {
-	return Auth::basic();
+	return Auth::dcms()->basic();
 });
 
 /*
@@ -59,9 +59,9 @@ Route::filter('auth.basic', function()
 |
 */
 
-Route::filter('guest', function()
+Route::filter('guest.dcms', function()
 {
-	if (Auth::check()) return Redirect::to('/');
+	if (Auth::dcms()->check()) return Redirect::to('/');
 });
 
 /*

@@ -8,9 +8,6 @@ use Dcweb\Dcms\Models\Languages\Language;
 use Dcweb\Dcms\Models\Products\CategoryID;
 use Dcweb\Dcms\Models\Products\Category;
 
-use Dcweb\Dcms\Models\Pages\Page;
-use Dcweb\Dcms\Models\Pages\Detail as PageDetail;
-
 use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 use View;
@@ -102,39 +99,16 @@ class LanguageController extends BaseController {
 			$Language->save();
 
 
-
-			//--------------------------------------
-			// Set up the - ROOT - product category
-			// for the new language
-			//--------------------------------------
 			$translatedCategory = new Category; 
-			$translatedCategory->title = "- ROOT -";// Input::get('langtitle.1');
+			$translatedCategory->title = "root";// Input::get('langtitle.1');
 			$translatedCategory->language_id = $Language->id;
 			
 			$translatedCategory->url_slug = SEOHelpers::SEOUrl("root"); 
 			$translatedCategory->url_path = SEOHelpers::SEOUrl("root"); 
 			
-			$translatedCategory->admin =  Auth::user()->username;
+			$translatedCategory->admin =  Auth::dcms()->user()->username;
 			$translatedCategory->save();			
-			CategoryID::find(1)->category()->save($translatedCategory); //we didn't have a 0 key on DB:seed actions
-		
-		
-			//---------------------------------
-			// Set up the - ROOT - page 
-			// for the new language
-			//---------------------------------
-			$translatedPage = new PageDetail;
-			$translatedPage->title = "- ROOT -";
-			$translatedPage->language_id = $Language->id;
-			
-			$translatedPage->url_slug = SEOHelpers::SEOUrl("root"); 
-			$translatedPage->url_path = SEOHelpers::SEOUrl("root"); 
-			
-			$translatedPage->admin =  Auth::user()->username;
-			$translatedPage->save();	
-			Page::find(1)->detail()->save($translatedPage); //we didn't have a 0 key on DB:seed actions
-		
-		
+			CategoryID::find(0)->category()->save($translatedCategory);
 		
 			$request = Request::create('/admin/products/categories/generatetree', 'GET', array());
 			$response = Route::dispatch($request);

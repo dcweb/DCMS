@@ -343,7 +343,7 @@ left join countries as settings on languages.country_id = settings.id
 				$pPrice->product_id 		= $Product->id;
 				$pPrice->valuta_class_id = $input['valuta_class_id'][$price_id];
 				$pPrice->tax_class_id 	= $input['tax_class_id'][$price_id];
-				$pPrice->admin 					=  Auth::user()->username;
+				$pPrice->admin 					=  Auth::dcms()->user()->username;
 				$pPrice->save();
 			}
 		}
@@ -369,7 +369,7 @@ left join countries as settings on languages.country_id = settings.id
 		$Product->image 		= Input::get('image');
 		$Product->volume 		= Input::get('volume');
 		$Product->volume_unit_class 	= Input::get('volume_unit_class');
-		$Product->admin =  Auth::user()->username;
+		$Product->admin =  Auth::dcms()->user()->username;
 		$Product->save();
 		
 		$Product->information()->detach(); //detach any information setting, this will be set up using teh saveProductInformation() method
@@ -412,7 +412,7 @@ left join countries as settings on languages.country_id = settings.id
 					$pInformation->product_category_id = ($input["information_category_id"][$i]==0?NULL:$input["information_category_id"][$i]);
 					$pInformation->url_slug 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
 					$pInformation->url_path 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
-					$pInformation->admin 			=  Auth::user()->username;
+					$pInformation->admin 			=  Auth::dcms()->user()->username;
 					$pInformation->save();			
 					$Product->information()->attach($pInformation->id);
 					
@@ -516,7 +516,21 @@ left join countries as settings on languages.country_id = settings.id
 	{
 		// get the Product
 		$product = Product::find($id);	
-			
+		/*
+		$languageinformation = DB::connection("project")->select('
+														SELECT products_information.language_id ,sort_id, (select max(sort_id) from products_information as X  where X.language_id = products_information.language_id) as maxsort, language, language_name, country, products_information.title, products_information.description, products_information.id as information_id, product_category_id
+														FROM  products
+														INNER JOIN products_to_products_information on products.id = products_to_products_information.product_id
+														INNER JOIN products_information on products_to_products_information.product_information_id = products_information.id
+														INNER JOIN languages on languages.id = products_information.language_id
+														WHERE products.id = ? 
+														
+														UNION
+														SELECT languages.id as language_id , 0, (select max(sort_id) from products_information where language_id = languages.id), language, language_name, country, \'\' as title, \'\' as description, \'\' as information_id , \'\' 
+														FROM languages 
+														WHERE id NOT IN (SELECT language_id FROM products_information WHERE id IN (SELECT product_information_id FROM products_to_products_information WHERE product_id = ?)) ORDER BY 1 ', array($id,$id));
+		*/
+		
 		//build the rows with the prices based on the query result / model
 		$mPrices= DB::connection("project")->select('SELECT products_price.id , country_id, product_id, country_name, price, valuta_class_id, tax_class_id FROM products_price INNER JOIN countries ON countries.id = products_price.country_id WHERE product_id = ? ',array($id));
 		$rowPrices = $this->getPriceRow($mPrices);
