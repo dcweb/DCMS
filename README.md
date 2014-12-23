@@ -32,7 +32,7 @@ Require this package
     "Ollieread\Multiauth\MultiauthServiceProvider"
 		
 		
-		service providers 
+		service providers to add
 			'Dcweb\Dcms\DcmsServiceProvider',
 			'Chumper\Datatable\DatatableServiceProvider',
 			'Barryvdh\Debugbar\ServiceProvider',	
@@ -43,7 +43,6 @@ Require this package
 6. MultiAuth: Configuration is pretty easy too, take app/config/auth.php from your root laravel installation with its default values:
 
     return array(
-		
 			'driver' => 'eloquent',
 			'model' => 'User',
 			'table' => 'users',
@@ -52,13 +51,11 @@ Require this package
 				'table' => 'password_reminders',
 				'expire' => 60,
 			),
-			
 		);
 
 7. Now remove the first three options and replace as follows:
 
     return array(
-			
 				'multi' => array(
 						'user' => array(
 								'driver' => 'eloquent',
