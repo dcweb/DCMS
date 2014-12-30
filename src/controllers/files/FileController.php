@@ -6,6 +6,7 @@ use Dcweb\Dcms\Controllers\BaseController;
 use View;
 
 class FileController extends BaseController {
+	
 
 	public function index()
 	{

@@ -90,6 +90,16 @@ Route::group( array("prefix" => "admin"), function() {
 		});
 		Route::resource('pages','Dcweb\Dcms\Controllers\Pages\PageController');		
 		
+		
+		//Newsletter
+		Route::group( array("prefix" => "newsletters"), function() {		
+	//		Route::get('{id}/copy', array('as'=>'admin/newsletter/copy', 'uses' => 'Dcweb\Dcms\Controllers\Dealers\DealerController@copy'));
+	//		Route::get('api/zipcity', array('as'=>'admin/dealers/api/zipcity', 'uses' => 'Dcweb\Dcms\Controllers\Dealers\DealerController@getZipCityJson'));
+			Route::any("api/table", array( "as" => "admin/newsletters/api/table", "uses" => "Dcweb\Dcms\Controllers\Newsletters\NewsletterController@getDatatable"));		
+			Route::any("api/send", array( "as" => "admin/newsletters/api/send", "uses" => "Dcweb\Dcms\Controllers\Newsletters\NewsletterController@sendmail"));		
+		});
+		Route::resource("newsletters", 'Dcweb\Dcms\Controllers\Newsletters\NewsletterController');
+		
 		//DEALERS
 		Route::group( array("prefix" => "dealers"), function() {		
 			Route::get('{id}/copy', array('as'=>'admin/dealers/copy', 'uses' => 'Dcweb\Dcms\Controllers\Dealers\DealerController@copy'));

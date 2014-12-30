@@ -46,9 +46,6 @@
                     <div id="{{ $information->language . '-' . $information->country }}" class="tab-pane {{ ($key == 0 ? 'active' : '') }}">
 
                       {{ Form::hidden('article_information_id[' . $information->language_id . ']', $information->id) }}	
-                      
-                                 
-                      							
                                                     
                       <div class="form-group">
                         {{ Form::label('category_id[' . $information->language_id . ']', 'Category') }}
