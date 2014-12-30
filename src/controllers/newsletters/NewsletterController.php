@@ -31,13 +31,9 @@ class NewsletterController extends BaseController {
 		{
 			Mail::send('dcms::emails.newsletter', array('mailing' => $i), function($message) use ($i)
 			{
-					$message->to('bre@groupdc.be', 'Barry DCM')->subject('Briefke nr #'.$i);
+					$message->to('email@domain.com', 'friendly name')->subject('newsletter nr #'.$i);
 			});
 			
-			Mail::send('dcms::emails.newsletter', array('mailing' => $i), function($message)  use ($i)
-			{
-					$message->to('bart.reymenants@gmail.com', 'BarryG DCM')->subject('Briefke nr #'.$i);
-			});
 		}
 		
 		return "using config/mail.php setup the correct settings";
