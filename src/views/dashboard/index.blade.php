@@ -3,7 +3,7 @@
 @section("content")
 
     <div class="main-header">
-      <h1>Dashboard v1.0 beta release</h1>
+      <h1>Dashboard v1.1.0 beta release</h1>
       
       
       <ol class="breadcrumb">
