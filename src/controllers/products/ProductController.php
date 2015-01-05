@@ -19,10 +19,6 @@ use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 class ProductController extends BaseController {
 
-
-	public $extendInformationBlock = "";  //holds some HTML or laravel 
-	public $extendTabs = array();// (multi dimensional array // e.g. array(array('tabname'=>'friendlyname','tabcontent'=>'all kinds of html'),..);
-	
 	/**
 	 * Display a listing of the resource.
 	 *

@@ -45,7 +45,7 @@ use Eloquent;
 						
 						if ($enableEmpty == true && array_key_exists(0, $OptionValueArray[$lang->language_id])== false )
 						{
-							$OptionValueArray[$lang->language_id][0] = "- ROOT -";
+							$OptionValueArray[$lang->language_id][1] = "- ROOT -";
 						}
 						//we  make an array with array[languageid][maincategoryid] = translated category;
 						$OptionValueArray[$lang->language_id][$lang->$columnMapper[0]]=str_repeat('-',$lang->level).' '.$lang->$columnMapper[1];
@@ -57,7 +57,7 @@ use Eloquent;
 				
 				foreach($Languages as $Lang)
 				{	
-					$OptionValueArray[$Lang->id][0] = "- ROOT -";	
+					$OptionValueArray[$Lang->id][1] = "- ROOT -";	
 				}
 			}
 			return $OptionValueArray;
