@@ -108,7 +108,7 @@ class LanguageController extends BaseController {
 			
 			$translatedCategory->admin =  Auth::dcms()->user()->username;
 			$translatedCategory->save();			
-			CategoryID::find(0)->category()->save($translatedCategory);
+			CategoryID::find(1)->category()->save($translatedCategory);
 		
 			$request = Request::create('/admin/products/categories/generatetree', 'GET', array());
 			$response = Route::dispatch($request);
