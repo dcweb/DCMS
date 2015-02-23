@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 
-class CreateDCMSDatabase extends Migration {
+class CreateGroupdc_LaravelDatabase extends Migration {
 
         /**
          * Run the migrations.
@@ -87,7 +87,7 @@ class CreateDCMSDatabase extends Migration {
 	     * Table: countries
 	     */
 	    Schema::create('countries', function($table) {
-                $table->increments('id');
+                $table->increments('id')->unsigned();
                 $table->string('country', 10)->nullable();
                 $table->string('country_name', 150)->nullable();
                 $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
@@ -99,7 +99,7 @@ class CreateDCMSDatabase extends Migration {
 	     * Table: dealers
 	     */
 	    Schema::create('dealers', function($table) {
-                $table->increments('id');
+                $table->increments('id')->unsigned();
                 $table->string('dealer', 200)->nullable();
                 $table->string('address', 250)->nullable();
                 $table->string('zip', 50)->nullable();
@@ -121,10 +121,145 @@ class CreateDCMSDatabase extends Migration {
 	     */
 	    Schema::create('languages', function($table) {
                 $table->increments('id')->unsigned();
-                $table->integer('country_id')->nullable();
+                $table->integer('country_id')->nullable()->unsigned();
                 $table->string('language', 255);
                 $table->string('language_name', 255)->nullable();
                 $table->string('country', 10)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->index('FK_langcountryid');
+            });
+
+
+	    /**
+	     * Table: newsletter
+	     */
+	    Schema::create('newsletter', function($table) {
+                $table->increments('id');
+                $table->string('subject', 255)->nullable();
+                $table->string('sender', 150)->nullable()->default("newsletter@dcm-info.com");
+                $table->string('sendermail', 150)->nullable()->default("newsletter@dcm-info.com");
+                $table->string('replyto', 255)->nullable()->default("newsletter@dcm-info.com");
+                $table->text('body')->nullable();
+                $table->text('htmlbody')->nullable();
+                $table->dateTime('date')->nullable();
+                $table->string('language', 20)->nullable();
+                $table->string('regio', 20)->nullable();
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('timestamp')->nullable();
+            });
+
+
+	    /**
+	     * Table: newsletters
+	     */
+	    Schema::create('newsletters', function($table) {
+                $table->increments('id');
+                $table->integer('campaign_id')->nullable();
+                $table->string('from_name', 150)->nullable()->default("newsletter@dcm-info.com");
+                $table->string('from_email', 150)->nullable()->default("newsletter@dcm-info.com");
+                $table->string('replyto_email', 150)->nullable()->default("newsletter@dcm-info.com");
+                $table->integer('default_list')->nullable()->default("1");
+                $table->timestamp('default_date')->nullable()->default("0000-00-00 00:00:00");
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->index('FK_newslettercampaignid');
+            });
+
+
+	    /**
+	     * Table: newsletters_campaigns
+	     */
+	    Schema::create('newsletters_campaigns', function($table) {
+                $table->increments('id');
+                $table->string('subject', 255)->nullable();
+                $table->integer('language_id')->nullable();
+                $table->text('wrapper')->nullable();
+                $table->text('layout')->nullable();
+                $table->text('style')->nullable();
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+            });
+
+
+	    /**
+	     * Table: newsletters_content
+	     */
+	    Schema::create('newsletters_content', function($table) {
+                $table->increments('id');
+                $table->integer('campaign_id')->nullable();
+                $table->integer('newsletter_id')->nullable();
+                $table->integer('sort_id')->nullable();
+                $table->string('name', 200)->nullable();
+                $table->string('title', 255)->nullable();
+                $table->text('body')->nullable();
+                $table->string('image', 255)->nullable();
+                $table->string('link', 200)->nullable();
+                $table->text('layout')->nullable();
+                $table->text('style')->nullable();
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->index('FK_contentnewsletter');
+                $table->index('FK_contentcampaign');
+            });
+
+
+	    /**
+	     * Table: newsletters_default
+	     */
+	    Schema::create('newsletters_default', function($table) {
+                $table->increments('id')->default("1");
+                $table->string('api_key', 255)->nullable();
+                $table->string('api_sandbox_key', 255)->nullable();
+                $table->string('from_name', 255)->nullable();
+                $table->string('from_email', 255)->nullable();
+                $table->string('replyto_email', 255)->nullable();
+                $table->string('track_opens', 10)->nullable();
+                $table->string('track_clicks', 10)->nullable();
+                $table->string('inline_css', 10)->nullable();
+                $table->string('url_strip_qs', 10)->nullable();
+                $table->string('signing_domain', 255)->nullable();
+                $table->text('google_analytics_domains')->nullable();
+                $table->string('google_analytics_campaign', 255)->nullable();
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+            });
+
+
+	    /**
+	     * Table: newsletters_sentlog
+	     */
+	    Schema::create('newsletters_sentlog', function($table) {
+                $table->increments('id')->unsigned();
+                $table->integer('newsletter_id')->nullable();
+                $table->string('type', 50)->nullable();
+                $table->text('emails')->nullable();
+                $table->integer('list_id')->nullable();
+                $table->integer('count')->nullable()->unsigned();
+                $table->text('mandrill_settings')->nullable();
+                $table->timestamp('send_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+            });
+
+
+	    /**
+	     * Table: newsletters_transactionmonitor
+	     */
+	    Schema::create('newsletters_transactionmonitor', function($table) {
+                $table->increments('id');
+                $table->text('mandrill_log')->nullable();
+                $table->text('server_log')->nullable();
+                $table->string('event', 150)->nullable();
+                $table->string('email', 255)->nullable();
+                $table->string('sender', 255)->nullable();
+                $table->string('state', 150)->nullable();
                 $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
                 $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
             });
@@ -134,7 +269,7 @@ class CreateDCMSDatabase extends Migration {
 	     * Table: pages
 	     */
 	    Schema::create('pages', function($table) {
-                $table->increments('id');
+                $table->increments('id')->unsigned();
                 $table->integer('parent_id')->nullable();
                 $table->integer('sort_id')->nullable();
                 $table->string('admin', 255)->nullable();
@@ -147,7 +282,7 @@ class CreateDCMSDatabase extends Migration {
 	     * Table: pages_detail
 	     */
 	    Schema::create('pages_detail', function($table) {
-                $table->increments('id');
+                $table->increments('id')->unsigned();
                 $table->integer('language_id')->default("1");
                 $table->integer('page_id')->nullable();
                 $table->string('title', 255)->nullable();
@@ -202,9 +337,15 @@ class CreateDCMSDatabase extends Migration {
                 $table->string('image', 255)->nullable();
                 $table->string('volume', 50)->nullable();
                 $table->integer('volume_unit_class')->nullable();
+                $table->integer('new')->nullable();
+                $table->integer('pro')->nullable();
+                $table->string('period', 12)->nullable()->default("000000000000");
+                $table->integer('matter_id')->nullable();
                 $table->string('admin', 50)->nullable();
                 $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
                 $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->integer('_oldvolumeid')->nullable();
+                $table->integer('_oldproductid')->nullable();
             });
 
 
@@ -213,11 +354,13 @@ class CreateDCMSDatabase extends Migration {
 	     */
 	    Schema::create('products_categories', function($table) {
                 $table->increments('id')->unsigned();
-                $table->integer('parent_id')->nullable();
+                $table->integer('parent_id')->nullable()->unsigned();
                 $table->integer('sort_id')->nullable();
                 $table->string('admin', 50)->nullable();
                 $table->timestamp('created_at')->default("0000-00-00 00:00:00");
                 $table->timestamp('updated_at')->default("0000-00-00 00:00:00");
+                $table->integer('_oldid')->nullable();
+                $table->integer('_oldtagid')->nullable();
             });
 
 
@@ -226,14 +369,18 @@ class CreateDCMSDatabase extends Migration {
 	     */
 	    Schema::create('products_categories_detail', function($table) {
                 $table->increments('id')->unsigned();
-                $table->integer('product_category_id')->nullable();
-                $table->integer('language_id')->nullable();
+                $table->integer('product_category_id')->nullable()->unsigned();
+                $table->integer('language_id')->nullable()->unsigned();
                 $table->string('title', 255)->nullable();
                 $table->string('url_slug', 255)->nullable();
                 $table->string('url_path', 255)->nullable();
                 $table->string('admin', 50)->nullable();
                 $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
                 $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->integer('_oldid')->nullable();
+                $table->integer('_oldtagid')->nullable();
+                $table->index('FK_categoryparent');
+                $table->index('FK_categorylanguage');
             });
 
 
@@ -242,14 +389,78 @@ class CreateDCMSDatabase extends Migration {
 	     */
 	    Schema::create('products_information', function($table) {
                 $table->increments('id')->unsigned();
-                $table->integer('language_id')->nullable()->default("1");
-                $table->integer('product_category_id')->nullable();
-                $table->integer('sort_id')->nullable();
+                $table->integer('language_id')->nullable()->default("1")->unsigned();
+                $table->integer('product_category_id')->nullable()->unsigned();
+                $table->integer('sort_id')->nullable()->unsigned();
                 $table->string('title', 255);
+                $table->string('composition', 255)->nullable();
                 $table->text('description')->nullable();
+                $table->text('guarantee')->nullable();
+                $table->string('pdf', 255)->nullable();
                 $table->string('url_slug', 255)->nullable();
                 $table->string('url_path', 255)->nullable();
                 $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->integer('_oldproductid')->nullable();
+                $table->index('FK_productlanguage');
+                $table->index('FK_productcategory');
+            });
+
+
+	    /**
+	     * Table: products_labels
+	     */
+	    Schema::create('products_labels', function($table) {
+                $table->increments('id');
+                $table->integer('sort_id')->nullable();
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+            });
+
+
+	    /**
+	     * Table: products_labels_detail
+	     */
+	    Schema::create('products_labels_detail', function($table) {
+                $table->increments('id');
+                $table->integer('label_id')->nullable();
+                $table->integer('language_id')->nullable();
+                $table->integer('sort_id')->nullable();
+                $table->string('title', 255)->nullable();
+                $table->string('subtitle', 255)->nullable();
+                $table->string('slug', 255)->nullable();
+                $table->text('description')->nullable();
+                $table->string('image', 255)->nullable();
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('timestamp')->nullable()->default("CURRENT_TIMESTAMP");
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->index('FK_labelid');
+            });
+
+
+	    /**
+	     * Table: products_matters
+	     */
+	    Schema::create('products_matters', function($table) {
+                $table->increments('id');
+                $table->timestamp('timestamp')->default("CURRENT_TIMESTAMP");
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+            });
+
+
+	    /**
+	     * Table: products_matters_detail
+	     */
+	    Schema::create('products_matters_detail', function($table) {
+                $table->increments('id');
+                $table->integer('matter_id');
+                $table->integer('language_id')->nullable();
+                $table->string('matter', 100)->nullable();
+                $table->timestamp('timestamp')->nullable()->default("CURRENT_TIMESTAMP");
                 $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
                 $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
             });
@@ -259,15 +470,17 @@ class CreateDCMSDatabase extends Migration {
 	     * Table: products_price
 	     */
 	    Schema::create('products_price', function($table) {
-                $table->increments('id');
-                $table->integer('country_id')->nullable();
-                $table->integer('product_id')->nullable();
+                $table->increments('id')->unsigned();
+                $table->integer('country_id')->nullable()->unsigned();
+                $table->integer('product_id')->nullable()->unsigned();
                 $table->decimal('price', 6,2)->nullable()->default("0.00");
                 $table->integer('valuta_class_id')->nullable()->default("1");
                 $table->integer('tax_class_id')->nullable()->default("1");
                 $table->string('admin', 50)->nullable();
                 $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
                 $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->index('FK_pricecountry');
+                $table->index('FK_priceproduct');
             });
 
 
@@ -277,7 +490,29 @@ class CreateDCMSDatabase extends Migration {
 	    Schema::create('products_to_products_information', function($table) {
                 $table->integer('product_id');
                 $table->integer('product_information_id');
-				$table->primary(array('product_id','product_information_id'),'PK_product_info');
+            });
+
+
+	    /**
+	     * Table: products_to_products_labels
+	     */
+	    Schema::create('products_to_products_labels', function($table) {
+                $table->integer('product_id');
+                $table->integer('label_id');
+            });
+
+
+	    /**
+	     * Table: products_volumedata
+	     */
+	    Schema::create('products_volumedata', function($table) {
+                $table->increments('id');
+                $table->integer('product_id');
+                $table->integer('language_id')->nullable();
+                $table->string('used_for', 255)->nullable();
+                $table->timestamp('timestamp')->nullable()->default("CURRENT_TIMESTAMP");
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
             });
 
 
@@ -297,6 +532,58 @@ class CreateDCMSDatabase extends Migration {
                 $table->text('url')->nullable();
                 $table->text('path')->nullable();
                 $table->text('idPath')->nullable();
+            });
+
+
+	    /**
+	     * Table: subscribers
+	     */
+	    Schema::create('subscribers', function($table) {
+                $table->increments('id')->unsigned();
+                $table->integer('list_id')->nullable();
+                $table->string('email', 150)->nullable();
+                $table->string('username', 255)->nullable();
+                $table->string('cryptid', 255)->nullable();
+                $table->string('password', 255)->nullable();
+                $table->string('firstname', 100)->nullable();
+                $table->string('lastname', 100)->nullable();
+                $table->string('gender', 20)->nullable();
+                $table->string('street', 150)->nullable();
+                $table->string('nr', 5)->nullable();
+                $table->string('bus', 5)->nullable();
+                $table->string('zip', 7)->nullable();
+                $table->string('city', 100)->nullable();
+                $table->string('country', 50)->nullable();
+                $table->string('language', 20)->nullable();
+                $table->boolean('newsletter')->nullable()->default("1");
+                $table->boolean('active')->nullable();
+                $table->boolean('verified')->nullable();
+                $table->timestamp('lastlogin')->nullable()->default("0000-00-00 00:00:00");
+                $table->integer('bounced')->nullable();
+                $table->timestamp('bouncedtime')->nullable()->default("0000-00-00 00:00:00");
+                $table->string('remember_token', 255)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable();
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('timestamp')->nullable()->default("CURRENT_TIMESTAMP");
+                $table->index('UK_username');
+                $table->index('UK_email_list');
+                $table->index('UK_email_list');
+            });
+
+
+	    /**
+	     * Table: subscribers_lists
+	     */
+	    Schema::create('subscribers_lists', function($table) {
+                $table->increments('id')->unsigned();
+                $table->string('listname', 100)->nullable();
+                $table->string('from_name', 100)->nullable()->default("newsletter@dcm-info.com");
+                $table->string('from_email', 100)->nullable()->default("newsletter@dcm-info.com");
+                $table->string('replyto_email', 100)->nullable()->default("newsletter@dcm-info.com");
+                $table->string('admin', 50)->nullable();
+                $table->timestamp('created_at')->nullable()->default("0000-00-00 00:00:00");
+                $table->timestamp('updated_at')->nullable()->default("0000-00-00 00:00:00");
             });
 
 
@@ -636,6 +923,13 @@ SQL;
 	            Schema::drop('countries');
 	            Schema::drop('dealers');
 	            Schema::drop('languages');
+	            Schema::drop('newsletter');
+	            Schema::drop('newsletters');
+	            Schema::drop('newsletters_campaigns');
+	            Schema::drop('newsletters_content');
+	            Schema::drop('newsletters_default');
+	            Schema::drop('newsletters_sentlog');
+	            Schema::drop('newsletters_transactionmonitor');
 	            Schema::drop('pages');
 	            Schema::drop('pages_detail');
 	            Schema::drop('pagetree');
@@ -644,9 +938,17 @@ SQL;
 	            Schema::drop('products_categories');
 	            Schema::drop('products_categories_detail');
 	            Schema::drop('products_information');
+	            Schema::drop('products_labels');
+	            Schema::drop('products_labels_detail');
+	            Schema::drop('products_matters');
+	            Schema::drop('products_matters_detail');
 	            Schema::drop('products_price');
 	            Schema::drop('products_to_products_information');
+	            Schema::drop('products_to_products_labels');
+	            Schema::drop('products_volumedata');
 	            Schema::drop('productscategorytree');
+	            Schema::drop('subscribers');
+	            Schema::drop('subscribers_lists');
 	            Schema::drop('tax_class');
 	            Schema::drop('users');
 	            Schema::drop('volumes_class');

@@ -38,7 +38,7 @@
 							    
               <div class="form-group">
                 {{ Form::label('sort_id', 'Sort') }}
-                {{ Form::text('sort_id', (Input::old('sort_id') ? Input::old('sort_id') : (isset($page)?$page->sort_id:'')), array('class' => 'form-control')) }}
+                {{ Form::select('sort_id', $sortOptionValues, (Input::old('sort_id') ? Input::old('sort_id') : (isset($page)?$page->sort_id:end($sortOptionValues))), array('class' => 'form-control')) }}
               </div>
 
               @if(isset($languages))

@@ -60,13 +60,11 @@
                       <div class="input-group">
                           {{ Form::text('image', Input::old('image'), array('class' => 'form-control')) }}
                         <span class="input-group-btn">
-                          {{ Form::button('Browse Server', array('class' => 'btn btn-primary browse-server')) }}
+                          {{ Form::button('Browse Server', array('class' => 'btn btn-primary browse-server' , 'id'=>'browse_image')) }}
                         </span>
                       </div>
                     </div>
-                                
-                    
-                    
+                              
 									  <!-- #Volume + unitclass (kg - l - g - ...) -->        
                     <div class="row">
                       <div class="col-sm-10">
@@ -82,6 +80,14 @@
                         </div>
                       </div>
                     </div>
+                    
+                    @if(!isset($extendgeneralTemplate)  || is_null($extendgeneralTemplate) )
+                      {{-- nothing to include.. --}}
+                    @elseif(!is_null($extendgeneralTemplate["template"]))
+                      @include($extendgeneralTemplate["template"], array('model'=>$extendgeneralTemplate["model"],'product'=>(isset($product)?$product:null)))
+                      @yield('extendedgeneral')
+                    @endif
+                    
   								<!-- #data -->        
                 </div>
 
@@ -132,7 +138,7 @@
                       
                     <tfoot>
                       <tr>
-                        <td colspan="5"><a class="btn btn-default pull-right add-table-row" href=""><i class="fa fa-plus"></a></td>
+                        <td colspan="5"><a class="btn btn-default pull-right add-table-row" href=""><i class="fa fa-plus"></i></a></td>
                       </tr>
                     </tfoot>
       						</table>
@@ -174,9 +180,15 @@ $(document).ready(function() {
 	//CKEditor
 	$("textarea.ckeditor").ckeditor();
 	
-	//CKFinder 
+	//CKFinder 	
 	$(".browse-server").click(function() {
-		BrowseServer( 'Images:/products/', 'image' );
+		var returnid = $(this).attr("id").replace("browse_","") ;
+		BrowseServer( 'Images:/', returnid);
+	})
+	//CKFinder 	
+	$(".browse-server-files").click(function() {
+		var returnid = $(this).attr("id").replace("browse_","") ;
+		BrowseServer( 'Files:/', returnid);
 	})
 
 	//Bootstrap Tabs
@@ -213,7 +225,7 @@ $(document).ready(function() {
 		var table = this;
 		var rows = table.find('tbody tr').length;
 				
-		table.find('.add-table-row').click (function() {
+		table.find('.add-table-row').click(function() {
 			$.get( options.source, function( data ) {
 				if (!table.find('tbody').length) table.find('thead').after("<tbody></tbody>");
 				table.find('tbody').append( data.replace(/{INDEX}/g, "extra"+rows) );

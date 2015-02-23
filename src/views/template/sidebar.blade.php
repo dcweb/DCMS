@@ -21,7 +21,17 @@
       </li>
       <li><a href="{{ URL::to('admin/pages') }}"><i class="fa fa-file"></i><span>Pages</span></a></li>
       <li><a href="{{ URL::to('admin/dealers') }}"><i class="fa fa-map-marker"></i><span>Dealers</span></a></li>
-      <li><a href="{{ URL::to('admin/newsletters') }}"><i class="fa fa-newspaper-o"></i><span>Newsletter</span></a></li>
+      <li class="dropdown">
+        <a href="{{ URL::to('admin/newsletters') }}"><i class="fa fa-newspaper-o"></i><span>Newsletter</span><b class="arrow fa fa-angle-down"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="{{ URL::to('admin/newsletters') }}">Overview</a></li>
+          <li><a href="{{ URL::to('admin/newsletters/campaigns') }}">Campaigns</a></li>
+          <li><a href="{{ URL::to('admin/newsletters/content') }}">Content</a></li>
+          <li><a href="{{ URL::to('admin/subscribers/lists') }}">Lists</a></li>
+          <li><a href="{{ URL::to('admin/subscribers') }}">Subscribers</a></li>
+          <li><a href="{{ URL::to('admin/newsletters/settings') }}">Settings</a></li>
+        </ul>
+      </li>
       <li><a href="{{ URL::to('admin/files') }}"><i class="fa fa-folder"></i><span>Files</span></a></li>
     </ul>
     <div class="text-right collapse-button">

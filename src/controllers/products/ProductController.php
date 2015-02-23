@@ -18,6 +18,33 @@ use Auth;
 use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 
 class ProductController extends BaseController {
+	
+	public $informatationColumNames = array();
+	public $productColumNames = array();
+	public $extendgeneralTemplate = ""; 
+	public $informationTemplate = ""; 
+	
+	public function __construct()
+	{
+		$this->informationColumNames = array('title'=>'information_name'
+																	,'description'=>'information_description'
+																	,'sort_id'=>'information_sort_id'
+																	,'product_category_id'=>'information_category_id'
+																	,'url_slug'=>'information_name'
+																	,'url_path'=>'information_name'
+																	);
+		
+		$this->productColumNames = array('code'=>'code'
+																,'eancode'=>'eancode'
+																,'image'=>'image'
+																,'volume'=>'volume'
+																,'volume_unit_class'=>'volume_unit_class'
+															);
+															
+		$this->extendgeneralTemplate = null; 
+		$this->informationTemplate = null; 
+	}
+
 
 	/**
 	 * Display a listing of the resource.
@@ -29,6 +56,7 @@ class ProductController extends BaseController {
 		return View::make('dcms::products/products/index');
 	}
 		
+		
 	/**
 	 * $mDefaults contains an array of Price-Models 
 	 *
@@ -39,67 +67,69 @@ class ProductController extends BaseController {
 		$rowstring = ""; 
 		
 		$openbody = true;
+		$closebody = true;
 		if ($forceEmpty === true && empty($mDefaults) === true)
 		{
 			$openbody = false;
+			$closebody = false;
 			$mDefaults[] = (object) array();
 		}
 		
 		foreach($mDefaults as $Price)
 		{
-					$country_option = ""; 
-					foreach($this->getCountries("array") as $countryid => $country)
-					{
-						$selected = ""; 
-					//	if (isset($mDefaults["price-country-id"]) &&  $mDefaults["price-country-id"] == $Price->country_id) $selected = "selected";
-						if (isset($Price->country_id) && $countryid ==$Price->country_id) $selected = "selected";
-						
-						$country_option .= '<option value="'.$countryid.'" '.$selected.'>'.$country.'</option>';
-					}
-					
-					$tax_option = ""; 
-					foreach($this->getTaxClasses("array") as $taxid => $tax)
-					{
-						$selected = ""; 
-						if (isset($Price->tax_class_id) && $taxid == $Price->tax_class_id) $selected = "selected";
-						
-						$tax_option .= '<option value="'.$taxid.'" '.$selected.' >'.$tax.'</option>';
-					}
-					
-					if ($openbody === true ) $rowstring .= '<tbody xxx '.$openbody.'>';
-					
-					//------------------------------------------------------------------------
-					// 							TEMPLATE FOR THE PRICE ROW
-					//------------------------------------------------------------------------
-					$rowstring .= ' <tr>
-														<td>
-															<select id="price-country-id[{INDEX}]" class="form-control" name="price-country-id[{INDEX}]">
-																'.$country_option.'
-															</select>
-														</td>
-														<td>
-															<input id="price[{INDEX}]" name="price[{INDEX}]" class="form-control" type="text" value="'.(isset($Price->price)?$Price->price:"").'">
-														</td>
-														<td>
-															<select id="valuta_class_id[{INDEX}]" name="valuta_class_id[{INDEX}]" class="form-control">
-																<option value="1">euro</option>
-															</select>
-														</td>
-														<td>
-															<select id="tax_class_id[{INDEX}]" name="tax_class_id[{INDEX}]" class="form-control">
-																'.$tax_option.'
-															</select>
-														</td>
-														<td><a class="btn btn-default pull-right delete-table-row" href=""><i class="fa fa-trash-o"></i></a></td>
-													</tr>';
-					
-					if ($openbody === true) $rowstring .= '</tbody>';
-					
-					if (isset($Price->id) && intval($Price->id)>0) $rowstring = str_replace("{INDEX}",$Price->id,$rowstring);
-					$openbody = false; 
+			$country_option = ""; 
+			foreach($this->getCountries("array") as $countryid => $country)
+			{
+				$selected = ""; 
+				if (isset($Price->country_id) && $countryid ==$Price->country_id) $selected = "selected";
+				
+				$country_option .= '<option value="'.$countryid.'" '.$selected.'>'.$country.'</option>';
+			}
+			
+			$tax_option = ""; 
+			foreach($this->getTaxClasses("array") as $taxid => $tax)
+			{
+				$selected = ""; 
+				if (isset($Price->tax_class_id) && $taxid == $Price->tax_class_id) $selected = "selected";
+				
+				$tax_option .= '<option value="'.$taxid.'" '.$selected.' >'.$tax.'</option>';
+			}
+			
+			if ($openbody === true ) $rowstring .= '<tbody >';
+			
+			//------------------------------------------------------------------------
+			// 							TEMPLATE FOR THE PRICE ROW
+			//------------------------------------------------------------------------
+			$rowstring .= ' <tr>
+												<td>
+													<select id="price-country-id[{INDEX}]" class="form-control" name="price-country-id[{INDEX}]">
+														'.$country_option.'
+													</select>
+												</td>
+												<td>
+													<input id="price[{INDEX}]" name="price[{INDEX}]" class="form-control" type="text" value="'.(isset($Price->price)?$Price->price:"").'">
+												</td>
+												<td>
+													<select id="valuta_class_id[{INDEX}]" name="valuta_class_id[{INDEX}]" class="form-control">
+														<option value="1">euro</option>
+													</select>
+												</td>
+												<td>
+													<select id="tax_class_id[{INDEX}]" name="tax_class_id[{INDEX}]" class="form-control">
+														'.$tax_option.'
+													</select>
+												</td>
+												<td><a class="btn btn-default pull-right delete-table-row" href=""><i class="fa fa-trash-o"></i></a></td>
+											</tr>';
+			
+			if (isset($Price->id) && intval($Price->id)>0) $rowstring = str_replace("{INDEX}",$Price->id,$rowstring);
+			$openbody = false; 
 		}
+		if ($closebody === true) $rowstring .= '</tbody>';
+		
 		return $rowstring;
 	}
+	
 	
 	public function getTableRow()
 	{
@@ -108,6 +138,7 @@ class ProductController extends BaseController {
 			return $this->getPriceRow(null, true);
 		}
 	}	
+	
 	
 	/**
 	 * return the requested json data.
@@ -123,6 +154,7 @@ class ProductController extends BaseController {
 		return $pData;
 	}	
 	
+	
 	/**
 	 * get the data for DataTable JS plugin.
 	 *
@@ -130,54 +162,14 @@ class ProductController extends BaseController {
 	 */
 	public function getDatatable()
 	{
-		/* 		FULL QUERY
-		//--------------------
-				select 
-				`products`.`id`, 
-				`products`.`code`, 
-				`products`.`eancode`, 
-				`products_to_products_information`.`product_information_id` as `info_id`, 
-				`products_information`.`title`, 
-				
-				concat("<img src='/packages/dcweb/dcms/assets/images/flag-", lcase(settings.country),".png' >") as country_settings,
-				concat("<img src='/packages/dcweb/dcms/assets/images/flag-", lcase(selling.country),".png' >",title) as country_selling,
-				
-					(	select group_concat(DISTINCT cast(  concat("<img src='/packages/dcweb/dcms/assets/images/flag-", lcase(countries.country),".png' >") as char(255)) SEPARATOR '  ' ) 
-						from products_price 
-						left join countries on products_price.country_id = countries.id 
-						where  products_price.product_id = products.id 
-						group by product_id)  as all_selling_countries
-				
-				from `products` 
-				left join `products_to_products_information` on `products`.`id` = `products_to_products_information`.`product_id` 
-				left join `products_information` on `products_information`.`id` = `products_to_products_information`.`product_information_id` 
-				left join `languages` on `products_information`.`language_id` = `languages`.`id` 
-				left join products_price on products_price.product_id = products.id and products_price.country_id = languages.country_id
-				left join countries as selling on products_price.country_id = selling.id
-				left join countries as settings on languages.country_id = settings.id
-				
-				order by `code` asc 
-				limit 50;
-		*/
-		
-				return Datatable::Query(
+			return Datatable::Query(
 																	DB::connection("project")->table("products")->select(
-																								"products.id", 
-																								"products.code", 
-																								"products.eancode",
-																								"products_to_products_information.product_information_id as info_id",
-																								"title",
-																								//(DB::connection("project")->raw("concat(\"<img src='/packages/dcweb/dcms/assets/images/flag-\", lcase(selling.country),\".png' > \",title) as title")) ,//the title with its country
-																							
-																								(DB::connection("project")->raw("concat(\"<img src='/packages/dcweb/dcms/assets/images/flag-\", lcase(selling.country),\".png' > \") as country")) 
-
-																								//Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' > ",title) as country,
-																								/*
-																								(DB::connection("project")->raw('(select group_concat(DISTINCT cast(  concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-", lcase(countries.country),".png\' >") as char(255)) order by countries.country asc SEPARATOR \'  \' ) 
-from products_price 
-left join countries on products_price.country_id = countries.id 
-where  product_id = products.id 
-group by product_id)  as country')) // all countries where this is for sale*/
+																									"products.id", 
+																									"products.code", 
+																									"products.eancode",
+																									"products_to_products_information.product_information_id as info_id",
+																									"title",
+																									(DB::connection("project")->raw("concat(\"<img src='/packages/dcweb/dcms/assets/images/flag-\", lcase(selling.country),\".png' > \") as country")) 
 																								)
 																								->leftJoin('products_to_products_information','products.id','=','products_to_products_information.product_id')
 																								->leftJoin('products_information','products_information.id','=','products_to_products_information.product_information_id')
@@ -209,6 +201,7 @@ left join countries as settings on languages.country_id = settings.id
 						->make(); 
 	}
 
+
 	public function getCountries($ModelArray = "array")
 	{
 		$oCountries =  DB::connection("project")->select('SELECT id, country_name FROM countries');
@@ -225,6 +218,7 @@ left join countries as settings on languages.country_id = settings.id
 			return $aCountries;
 		}
 	}
+
 
 	public function getTaxClasses($returnType = "array")
 	{
@@ -248,6 +242,7 @@ left join countries as settings on languages.country_id = settings.id
 		}
 	}
 	
+	
 	public function getVolumesClasses($returnType = "array")
 	{
 		//volumeclasses
@@ -270,6 +265,13 @@ left join countries as settings on languages.country_id = settings.id
 		}
 	}
 
+	//return the model to fill the form
+	public function getExtendedModel()
+	{
+		//do nothing sit back and make the extension hook up.
+	}
+
+
 	/**
 	 * Show the form for creating a new resource.
 	 *
@@ -281,11 +283,12 @@ left join countries as settings on languages.country_id = settings.id
 		//$languageinformation = DB::connection("project")->table("languages")->select( (DB::connection("project")->raw("'' as title, '' as description, NULL as sort_id, (select max(sort_id) from products_information where language_id = languages.id) as maxsort, '' as information_id, '' as id , '' as product_category_id")), "id as language_id", "language","language_name","country")->get();
 		
 		$languageinformation = $this->getInformation();		
-				
+
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::products/products/form')
 					->with('languageinformation', $languageinformation)
-					->with('informationtemplate', null) //giving null will make a fallback to the default productinformation template on the package
+					->with('extendgeneralTemplate', array('template' => $this->extendgeneralTemplate,'model' => $this->getExtendedModel()) )
+					->with('informationtemplate', $this->informationTemplate) //giving null will make a fallback to the default productinformation template on the package
 					->with('volumeclasses',$this->getVolumesClasses("array"))
 					->with('taxclasses',$this->getTaxClasses("array"))
 					->with('categoryOptionValues',Categorytree::OptionValueTreeArray(false)) //CategoryID::OptionValueArray(true)) //category::optionvaluearray will return a multidimensional array $a[languageid][catid]=catTitle;
@@ -293,7 +296,7 @@ left join countries as settings on languages.country_id = settings.id
 	}
 	
 	
-	private function validateProductForm()
+	protected function validateProductForm()
 	{
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
@@ -314,21 +317,19 @@ left join countries as settings on languages.country_id = settings.id
 		}
 	}
 	
-	private function saveProductPrice(Product $Product)
+	
+	protected function saveProductPrice(Product $Product)
 	{
 		$input = Input::get();
-		
-		$uPrice= Price::where('product_id','=',$Product->id);
-		$uPrice->update(array('product_id'=>null));
 		
 		//---------------------------------------------
 		// PRODUCT PRICE (Availability per country)
 		//---------------------------------------------	
 		if (isset($input["price-country-id"]) && count($input["price-country-id"])>0)
 		{
-//			Price::where('product_id', '=', $Product->id)->update(array('product_id' => NULL));	//we should remove all relations with this product
 			foreach($input['price-country-id'] as $price_id => $countryid)
 			{
+				$pPrice = null;
 				$pPrice = Price::find($price_id);  //we make an update when we get an PIM-id(products_data.id) from the form
 				if (is_null($pPrice) === true)  // if we couln't find a Model for the given PIM-id we need to create/add a new one.
 				{
@@ -345,7 +346,7 @@ left join countries as settings on languages.country_id = settings.id
 		}
 		
 		//delete all un-used or recently deleted prices
-		Price::where('product_id','=',null)->delete();
+		Price::where('product_id','=',$Product->id)->whereNotIn('id',array(array_keys($input['price-country-id'])))->delete();
 	}
 
 
@@ -354,17 +355,17 @@ left join countries as settings on languages.country_id = settings.id
 	 *
 	 * @return Product Object
 	 */
-	private function saveProductProperties($productid = null)
+	protected function saveProductProperties($productid = null)
 	{
 		// do check if the given id is existing.
 		if(!is_null($productid) && intval($productid)>0) $Product = Product::find($productid);
 		if(!isset($Product) || is_null($Product)) $Product = new Product;
 		
-		$Product->code   		= Input::get('code');
-		$Product->eancode 	= Input::get('eancode');
-		$Product->image 		= Input::get('image');
-		$Product->volume 		= Input::get('volume');
-		$Product->volume_unit_class 	= Input::get('volume_unit_class');
+		foreach($this->productColumNames as $column => $inputname)
+		{
+			$Product->$column = Input::get($inputname);
+		}
+		
 		$Product->admin =  Auth::dcms()->user()->username;
 		$Product->save();
 		
@@ -381,7 +382,7 @@ left join countries as settings on languages.country_id = settings.id
 	 
 	 * @return Product Object
 	 */
-	private function saveProductInformation(Product $Product, $givenlanguage_id = null )
+	protected function saveProductInformation(Product $Product, $givenlanguage_id = null )
 	{
 		$input = Input::get();
 		
@@ -391,7 +392,7 @@ left join countries as settings on languages.country_id = settings.id
 		{
 			foreach($input["information_language_id"] as $i => $language_id)
 			{
-				if (  (is_null($givenlanguage_id) || ($language_id == $givenlanguage_id)) &&  (strlen(trim($input["information_name"][$i]))>0) )
+				if ((is_null($givenlanguage_id) || ($language_id == $givenlanguage_id)) &&  (strlen(trim($input[$this->informationColumNames['title']][$i]))>0) )
 				{
 					$pInformation = null; //reset when in a loop
 					$newInformation = true;
@@ -401,32 +402,34 @@ left join countries as settings on languages.country_id = settings.id
 					$oldSortID = null;			
 					if ($newInformation == false && !is_null($pInformation->sort_id) && intval($pInformation->sort_id)>0) $oldSortID = intval($pInformation->sort_id);
 					
-					$pInformation->title 			= $input["information_name"][$i]; // Input::get('pim-name.1');
-					$pInformation->description 		= $input["information_description"][$i];//Input::get('pim-description.1');
-					$pInformation->language_id 		= $language_id;
-					$pInformation->sort_id 			= $input["information_sort_id"][$i];
-					$pInformation->product_category_id = ($input["information_category_id"][$i]==0?NULL:$input["information_category_id"][$i]);
-					$pInformation->url_slug 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
-					$pInformation->url_path 		= SEOHelpers::SEOUrl($input["information_name"][$i]); 
-					$pInformation->admin 			=  Auth::dcms()->user()->username;
-					$pInformation->save();			
+					foreach($this->informationColumNames as $column => $inputname)
+					{
+						$pInformation->$column = $input[$inputname][$i];
+					}
+					
+					$pInformation->language_id 	= $input["information_language_id"][$i];//$language_id;
+					$pInformation->product_category_id = ($input[$this->informationColumNames['product_category_id']][$i]==0?NULL:$input[$this->informationColumNames['product_category_id']][$i]);
+					$pInformation->url_slug 		= SEOHelpers::SEOUrl($input[$this->informationColumNames['url_slug']][$i]); 
+					$pInformation->url_path 		= SEOHelpers::SEOUrl($input[$this->informationColumNames['url_path']][$i]); 
+					$pInformation->admin 				=  Auth::dcms()->user()->username;
+					$pInformation->save();
 					$Product->information()->attach($pInformation->id);
 					
 					$sort_incrementstatus = "0"; //the default
 					if(is_null($oldSortID) || $oldSortID == 0)
 					{
 						//update all where sortid >= input::sortid
-						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input["information_sort_id"][$i])->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
+						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input[$this->informationColumNames['sort_id']][$i])->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
 						$sort_incrementstatus = "+1";
 					}
-					elseif ($oldSortID > $input["information_sort_id"][$i])
+					elseif ($oldSortID > $input[$this->informationColumNames['sort_id']][$i])
 					{	
-						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input["information_sort_id"][$i])->where('sort_id','<',$oldSortID)->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
+						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>=',$input[$this->informationColumNames['sort_id']][$i])->where('sort_id','<',$oldSortID)->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
 						$sort_incrementstatus = "+1";
 					}
-					elseif ($oldSortID < $input["information_sort_id"][$i])
+					elseif ($oldSortID < $input[$this->informationColumNames['sort_id']][$i])
 					{	
-						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>',$oldSortID)->where('sort_id','<=',$input["information_sort_id"][$i])->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
+						$updateInformations = Information::where('language_id','=',$language_id)->where('sort_id','>',$oldSortID)->where('sort_id','<=',$input[$this->informationColumNames['sort_id']][$i])->where('id','<>',$pInformation->id)->get(array('id','sort_id'));
 						$sort_incrementstatus = "-1";
 					}
 					
@@ -455,6 +458,7 @@ left join countries as settings on languages.country_id = settings.id
 		}//if (isset($input["information_language_id"]) && count($input["information_language_id"])>0)
 		return $pInformation;
 	}
+	
 
 	/**
 	 * Store a newly created resource in storage.
@@ -463,24 +467,24 @@ left join countries as settings on languages.country_id = settings.id
 	 */
 	public function store()
 	{		
-			if ($this->validateProductForm() === true)
-			{ 
-				$Product = $this->saveProductProperties();
-				$this->saveProductInformation($Product);
-				$this->saveProductPrice($Product);
-				
-				// redirect
-				Session::flash('message', 'Successfully created Product!');
-				return Redirect::to('admin/products');
-			}else return  $this->validateProductForm();
+		if ($this->validateProductForm() === true)
+		{ 
+			$Product = $this->saveProductProperties();
+			$this->saveProductInformation($Product);
+			$this->saveProductPrice($Product);
+			
+			// redirect
+			Session::flash('message', 'Successfully created Product!');
+			return Redirect::to('admin/products');
+		}else return  $this->validateProductForm();
 	}
+	
 	
 	public function getInformation($id = null)
 	{
 		if (is_null($id))
 		{
 			return DB::connection("project")->table("languages")->select( (DB::connection("project")->raw("'' as title, '' as description, NULL as sort_id, (select max(sort_id) from products_information where language_id = languages.id) as maxsort, '' as information_id, '' as id , '' as product_category_id")), "id as language_id", "language","language_name","country")->get();
-				
 		}
 		else
 		{
@@ -496,12 +500,10 @@ left join countries as settings on languages.country_id = settings.id
 														SELECT languages.id as language_id , 0, (select max(sort_id) from products_information where language_id = languages.id), language, language_name, country, \'\' as title, \'\' as description, \'\' as information_id , \'\' 
 														FROM languages 
 														WHERE id NOT IN (SELECT language_id FROM products_information WHERE id IN (SELECT product_information_id FROM products_to_products_information WHERE product_id = ?)) ORDER BY 1 ', array($id,$id));
-		
 		}
 	}
 	
 	
-
 	/**
 	 * Show the form for editing the specified resource.
 	 *
@@ -512,20 +514,6 @@ left join countries as settings on languages.country_id = settings.id
 	{
 		// get the Product
 		$product = Product::find($id);	
-		/*
-		$languageinformation = DB::connection("project")->select('
-														SELECT products_information.language_id ,sort_id, (select max(sort_id) from products_information as X  where X.language_id = products_information.language_id) as maxsort, language, language_name, country, products_information.title, products_information.description, products_information.id as information_id, product_category_id
-														FROM  products
-														INNER JOIN products_to_products_information on products.id = products_to_products_information.product_id
-														INNER JOIN products_information on products_to_products_information.product_information_id = products_information.id
-														INNER JOIN languages on languages.id = products_information.language_id
-														WHERE products.id = ? 
-														
-														UNION
-														SELECT languages.id as language_id , 0, (select max(sort_id) from products_information where language_id = languages.id), language, language_name, country, \'\' as title, \'\' as description, \'\' as information_id , \'\' 
-														FROM languages 
-														WHERE id NOT IN (SELECT language_id FROM products_information WHERE id IN (SELECT product_information_id FROM products_to_products_information WHERE product_id = ?)) ORDER BY 1 ', array($id,$id));
-		*/
 		
 		//build the rows with the prices based on the query result / model
 		$mPrices= DB::connection("project")->select('SELECT products_price.id , country_id, product_id, country_name, price, valuta_class_id, tax_class_id FROM products_price INNER JOIN countries ON countries.id = products_price.country_id WHERE product_id = ? ',array($id));
@@ -536,6 +524,8 @@ left join countries as settings on languages.country_id = settings.id
 		// show the edit form and pass the product
 		return View::make('dcms::products/products/form')
 			->with('product', $product)
+			->with('extendgeneralTemplate', array('template' => $this->extendgeneralTemplate,'model' => $this->getExtendedModel($id)) )
+			->with('informationtemplate', $this->informationTemplate) //giving null will make a fallback to the default productinformation template on the package
 			->with('languageinformation', $languageinformation)
 			->with('volumeclasses', $this->getVolumesClasses("array"))
 			->with('taxclasses', $this->getTaxClasses("array"))
@@ -544,6 +534,7 @@ left join countries as settings on languages.country_id = settings.id
 			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(false)) //CategoryID::OptionValueArray(true))
 			->with('sortOptionValues',$this->getSortOptions($languageinformation));
 	}
+	
 	
 	public function getSortOptions($model,$setExtra = 0)
 	{
@@ -564,6 +555,7 @@ left join countries as settings on languages.country_id = settings.id
 		return $SortOptions;
 	}	
 	
+	
 	/**
 	 * copy the model
 	 *
@@ -577,6 +569,7 @@ left join countries as settings on languages.country_id = settings.id
 		
 		return Redirect::to('admin/products');
 	}
+
 
 	/**
 	 * Update the specified resource in storage.

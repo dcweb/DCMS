@@ -6,7 +6,7 @@
       <h1>Newsletters</h1>
       <ol class="breadcrumb">
         <li><a href="{{ URL::to('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-        <li class="active"><i class="fa fa-pencil"></i> Newsletters</li>
+        <li class="active"><i class="fa fa-newspaper-o"></i> Newsletters</li>
       </ol>
     </div>
 
@@ -26,9 +26,11 @@
  {{ Datatable::table()
     ->setId('datatable')
     ->addColumn('Subject')
-    ->addColumn('Country')
+    ->addColumn('Language')
+		->addColumn('List')
+		->addColumn('Default date')
 		->addColumn('')
-    ->setUrl(route('admin/newsletters/api/table'))
+    ->setUrl( URL::to('admin/newsletters/api/table'))
     ->setOptions(array(
         'pageLength' => 50,
         ))

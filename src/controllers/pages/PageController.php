@@ -62,6 +62,21 @@ class PageController extends BaseController {
 						->make();
 	}
 
+	
+	
+	
+	public function getSortOptions($setExtra = 0 )
+	{
+		$sort_id = DB::connection("project")->table('pages')->max('sort_id');
+
+		for($i = 1; $i<=($sort_id+$setExtra); $i++)
+		{
+			$SortOptions[$i] = $i;
+		}
+
+		return $SortOptions;
+	}	
+	
 
 	/**
 	 * Show the form for creating a new resource.
@@ -75,7 +90,8 @@ class PageController extends BaseController {
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::pages/form')
 					->with('languages',$languages)
-					->with('pageOptionValues',Pagetree::OptionValueArray(true));
+					->with('pageOptionValues',Pagetree::OptionValueArray(true))
+					->with('sortOptionValues',$this->getSortOptions(1));
 	}
 
 
@@ -193,7 +209,8 @@ class PageController extends BaseController {
 			return View::make('dcms::pages/form')
 				->with('page', $page)
 				->with('languages', $languages)
-				->with('pageOptionValues',Pagetree::OptionValueArray(true));
+				->with('pageOptionValues',Pagetree::OptionValueArray(true))
+				->with('sortOptionValues',$this->getSortOptions());
 	}
 	
 

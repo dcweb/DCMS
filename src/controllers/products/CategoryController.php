@@ -74,7 +74,8 @@ class CategoryController extends BaseController {
 		// load the create form (app/views/categories/create.blade.php)
 		return View::make('dcms::products/categories/form')
 			->with('languages',$languages)
-			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true));
+			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true))
+			->with('sortOptionValues',$this->getSortOptions(1));
 	}
 
 	public function generateCategoryTree()
@@ -157,6 +158,18 @@ class CategoryController extends BaseController {
 		}
 	}
 
+	
+	public function getSortOptions($setExtra = 0 )
+	{
+		$sort_id = DB::connection("project")->table('products_categories')->max('sort_id');
+
+		for($i = 1; $i<=($sort_id+$setExtra); $i++)
+		{
+			$SortOptions[$i] = $i;
+		}
+
+		return $SortOptions;
+	}	
 
 
 	/**
@@ -169,7 +182,7 @@ class CategoryController extends BaseController {
 	{
 		//	get the category
 		$category = CategoryID::find($id);
-   
+
 	 	$languages = DB::connection("project")->select('SELECT languages.id, language, country, language_name, products_categories_detail.*
 			FROM products_categories 
 			LEFT JOIN products_categories_detail on products_categories.id = products_categories_detail.product_category_id
@@ -184,7 +197,8 @@ class CategoryController extends BaseController {
 		return View::make('dcms::products/categories/form')
 			->with('category', $category)
 			->with('languages',$languages)
-			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true));
+			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true))
+			->with('sortOptionValues',$this->getSortOptions());
 	}
 	
 	/**

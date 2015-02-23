@@ -250,8 +250,6 @@ class UserController extends BaseController {
 	 */
 	public function show($id)
 	{
-	
-		
 		//
 		// get the user
 		$user = User::find($id);

@@ -31,12 +31,12 @@ use Eloquent;
 		//the columnMapper is an array with integer index values
 		// 0 represesenting the id column
 		// 1 		"		 "	value "
-		public static function OptionValueTreeArray($enableEmpty = false, $columns = array('*') , $columnMapper = array("id","productcategory","language_id","level")){
+		public static function OptionValueTreeArray($enableEmpty = false, $columns = array('*') , $columnMapper = array("detail_id","productcategory","language_id","level")){
 			
 			$PageObj = parent::orderBy('language_id','asc')->orderBy('sort_id','asc')->get($columns);
 
 			$OptionValueArray = array();
-	
+
 			if (count($PageObj)>0)
 			{
 				foreach($PageObj as $lang)

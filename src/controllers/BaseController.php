@@ -4,12 +4,17 @@ namespace Dcweb\Dcms\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\View;
+use Request;
+use Input;
 
 class BaseController extends Controller {
 
 	
 	public function __construct() {
-    $this->beforeFilter('csrf', array('on'=>'post'));
+		if (!Request::ajax() || (Request::ajax() && Input::has('_token')) )
+		{
+    	$this->beforeFilter('csrf', array('on'=>'post'));
+		}
 	}
 	
 	/**

@@ -11,6 +11,10 @@
 |
 */
 
+
+Route::any("admin/newsletters/monitortransaction", array('as'=>'monitortransaction', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\TransactionController@monitor')); //used as webhook return path in mandrill 
+Route::any("unsubscribe/{ID?}", array('as'=>'unsubscribe', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\TransactionController@unsubscribe')); //used in the {{unsub}} tag of mandrill
+
 Route::group( array("prefix" => "admin"), function() {
 
 	Route::get("/", function() { return Redirect::to("admin/login"); });
@@ -75,30 +79,53 @@ Route::group( array("prefix" => "admin"), function() {
 			});
 			Route::resource('volumes','Dcweb\Dcms\Controllers\Settings\VolumeController');
 		});
-		Route::any('settings','Dcweb\Dcms\Controllers\Settings\SettingController@index');		
+		Route::any('settings','Dcweb\Dcms\Controllers\Settings\SettingController@index');
 
 		
 		//PROFILE
 		Route::any("profile", array( "as" => "admin/users/profile", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@profile"));
 		
 		//FILES
-		Route::any("files", array( "as" => "admin/files", "uses" => "Dcweb\Dcms\Controllers\Files\FileController@index"));	
+		Route::any("files", array( "as" => "admin/files", "uses" => "Dcweb\Dcms\Controllers\Files\FileController@index"));
 		
 		//Pages
 		Route::group( array("prefix" => "pages"), function() {
 			Route::any('api/table', array('as'=>'admin/pages/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Pages\PageController@getDatatable'));
 		});
-		Route::resource('pages','Dcweb\Dcms\Controllers\Pages\PageController');		
+		Route::resource('pages','Dcweb\Dcms\Controllers\Pages\PageController');
 		
 		
-		//Newsletter
-		Route::group( array("prefix" => "newsletters"), function() {		
-	//		Route::get('{id}/copy', array('as'=>'admin/newsletter/copy', 'uses' => 'Dcweb\Dcms\Controllers\Dealers\DealerController@copy'));
-	//		Route::get('api/zipcity', array('as'=>'admin/dealers/api/zipcity', 'uses' => 'Dcweb\Dcms\Controllers\Dealers\DealerController@getZipCityJson'));
-			Route::any("api/table", array( "as" => "admin/newsletters/api/table", "uses" => "Dcweb\Dcms\Controllers\Newsletters\NewsletterController@getDatatable"));		
-			Route::any("api/send", array( "as" => "admin/newsletters/api/send", "uses" => "Dcweb\Dcms\Controllers\Newsletters\NewsletterController@sendmail"));		
+		//NEWSLETTERS
+		Route::group( array("prefix" => "newsletters"), function() {
+			//CONTENT
+			Route::get("content/{id}/view", array('as'=>'admin/newsletters/content/view', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\ViewController@content'));
+			Route::any('api/tablerow', array('as'=>'admin/newsletters/api/tablerow', 'uses' => 'Dcweb\Dcms\Controllers\Newsletters\ContentController@getTableRow'));
+			Route::resource("content", 'Dcweb\Dcms\Controllers\Newsletters\ContentController');
+			//CAMPAIGNS
+			Route::get("campaigns/{id}/view", array('as'=>'admin/newsletters/campaigns/view', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\ViewController@campaign'));
+			Route::get('campaigns/{id}/copy', array('as'=>'admin/newsletters/campaigns/{id}/copy', 'uses' => 'Dcweb\Dcms\Controllers\Newsletters\CampaignController@copy'));
+			Route::resource("campaigns", 'Dcweb\Dcms\Controllers\Newsletters\CampaignController');
+			//NEWSLETTERS
+			Route::get("{id}/send", array('as'=>'admin/newsletters/send', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\NewsletterController@send'));
+			Route::any("{id}/transaction", array('as'=>'admin/newsletters/transaction', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\TransactionController@send'));
+			Route::get("{id}/view", array('as'=>'admin/newsletters/view', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\ViewController@newsletter'));
+			Route::get('{id}/copy', array('as'=>'admin/newsletters/{id}/copy', 'uses' => 'Dcweb\Dcms\Controllers\Newsletters\NewsletterController@copy'));
+			Route::any("api/table/{table?}/{selected_campaignid?}", array( "as" => "admin/newsletters/api/table", "uses" => "Dcweb\Dcms\Controllers\Newsletters\NewsletterController@getDatatable"));
+			Route::any("api/json", array( "as" => "admin/newsletters/api/json", "uses" => "Dcweb\Dcms\Controllers\Subscribers\ListController@getJsonData"));
+			Route::resource("settings", 'Dcweb\Dcms\Controllers\Newsletters\SettingController');
 		});
 		Route::resource("newsletters", 'Dcweb\Dcms\Controllers\Newsletters\NewsletterController');
+		
+		//SUBSCRIBERS
+		Route::group( array("prefix" => "subscribers"), function() {		
+			Route::group( array("prefix" => "lists"), function() {		
+				Route::resource("api/table", 'Dcweb\Dcms\Controllers\Subscribers\ListController@getDatatable');
+			});
+			Route::resource("lists", 'Dcweb\Dcms\Controllers\Subscribers\ListController');
+				
+			Route::any("api/table", array( "as" => "admin/dealers/api/table", "uses" => "Dcweb\Dcms\Controllers\Subscribers\SubscriberController@getDatatable"));		
+		});
+		Route::resource("subscribers", 'Dcweb\Dcms\Controllers\Subscribers\SubscriberController');
 		
 		//DEALERS
 		Route::group( array("prefix" => "dealers"), function() {		
