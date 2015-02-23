@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 
-class CreateGroupdc_LaravelDatabase extends Migration {
+class CreateDCMSDatabase extends Migration {
 
         /**
          * Run the migrations.
