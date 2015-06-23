@@ -2,8 +2,9 @@
 
 namespace Dcweb\Dcms\Models\Newsletters;
 
-use Eloquent;
-	class Content extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+
+	class Content extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "newsletters_content";

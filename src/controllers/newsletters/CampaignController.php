@@ -5,6 +5,7 @@ namespace Dcweb\Dcms\Controllers\Newsletters;
 use Dcweb\Dcms\Models\Newsletters\Campaign;
 use Dcweb\Dcms\Models\Newsletters\Content;
 use Dcweb\Dcms\Models\Languages\Language;
+use Dcweb\Dcms\Models\Countries\Country;
 
 use Dcweb\Dcms\Controllers\BaseController;
 use Dcweb\Dcms\Controllers\Newsletters\ContentController;
@@ -41,11 +42,26 @@ class CampaignController extends BaseController {
 		{
 			foreach($oLanguage as $M)
 			{
-				$aLanguages[$M->id] = $M->language;
+				$aLanguages[$M->id] = strtolower($M->language);
 			}
 		}
 		
 		return $aLanguages;
+	}
+	
+	public function getCountries()
+	{
+		$aCountries = array();
+		$oCountry = Country::groupBy('country')->orderBy('country')->get(array('id','country'));
+		if(count($oCountry)>0)
+		{
+			foreach($oCountry as $M)
+			{
+				$aCountries[$M->id] = strtoupper($M->country);
+			}
+		}
+		
+		return $aCountries;
 	}
 	
 	/**
@@ -59,7 +75,8 @@ class CampaignController extends BaseController {
 		
 		return View::make('dcms::newsletters/campaigns/form')
 				->with('Newslettercampaign', $Newslettercampaign)
-				->with('aLanguages',$this->getLanguages());
+				->with('aLanguages',$this->getLanguages())
+				->with('aCountries',$this->getCountries());
 	}
 	
 	
@@ -96,6 +113,7 @@ class CampaignController extends BaseController {
 		if(!isset($Campaign) || is_null($Campaign)) $Campaign = new Campaign;		
 		
 		$Campaign->subject 			= $input['campaign_subject'];
+		$Campaign->country_id 	= $input['campaign_country_id'];
 		$Campaign->language_id 	= $input['campaign_language_id'];
 		$Campaign->wrapper 			= View::make('dcms::newsletters/newsletters/layout');
 		$Campaign->layout 			= $input['campaign_layout'];
@@ -122,7 +140,8 @@ class CampaignController extends BaseController {
 			
 			// redirect
 			Session::flash('message', 'Successfully created campaign!');
-			return Redirect::to('admin/newsletters/campaigns');
+			//return Redirect::to('admin/newsletters/campaigns');
+			return Redirect::back();
 			
 		}else return  $this->validateNewslettercampaignForm();
 	}
@@ -147,7 +166,8 @@ class CampaignController extends BaseController {
 			return View::make('dcms::newsletters/campaigns/form')
 				->with('Newslettercampaign', $Newslettercampaign)
 				->with('ContentForms', $ContentForms)
-				->with('aLanguages',$this->getLanguages());
+				->with('aLanguages',$this->getLanguages())
+				->with('aCountries',$this->getCountries());
 	}
 
 
@@ -167,7 +187,8 @@ class CampaignController extends BaseController {
 	
 			// redirect
 			Session::flash('message', 'Successfully updated campaign!');
-			return Redirect::to('admin/newsletters/campaigns');
+			//return Redirect::to('admin/newsletters/campaigns');
+			return Redirect::back();
 			
 		}else return  $this->validateNewslettercampaignForm();
 	}
@@ -183,7 +204,7 @@ class CampaignController extends BaseController {
 	public function copy($id, $return = "topage")
 	{
 		$NewCampaign= Campaign::find($id)->replicate();
-		$NewCampaign->touch();
+		$NewCampaign->created_at = date("Y-m-d H:i:s");
 		$NewCampaign->save();
 		
 		$relatedContent = Content::where("campaign_id","=",$id)->get();
@@ -193,8 +214,8 @@ class CampaignController extends BaseController {
 			{
 				$NewContent = $Content->replicate();
 				$NewContent->campaign_id = $NewCampaign->id;
-				$NewContent->touch();
 				$NewContent->save();
+				$NewContent->touch();
 			}
 		}
 		

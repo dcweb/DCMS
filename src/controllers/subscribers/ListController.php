@@ -42,7 +42,6 @@ class ListController extends BaseController {
 					exit();
 					break;
 				default:
-					
 					break;
 			}
 		}
@@ -51,15 +50,23 @@ class ListController extends BaseController {
 	
 	public function getDatatable()// or we give the modelid of a certain model and find the details of this model - at this moment we only give the default checked radiobutton
 	{
-			return	Datatable::collection(Lists::all())
-						->showColumns('listname')
-						->addColumn('edit', function($model){ return '<form method="POST" action="/admin/subscribers/lists/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
+		
+		return Datatable::Query(
+																		DB::connection("project")->table("subscribers_lists")->select(
+																									"subscribers_lists.id", 
+																									"subscribers_lists.listname", 
+																									(DB::connection("project")->raw(" (SELECT count(*) FROM subscribers WHERE newsletter = 1 AND list_id = subscribers_lists.id ) as subscribers")) 
+																								)
+													)
+																			->showColumns('listname','subscribers')
+																			->addColumn('edit', function($model){ return '<form method="POST" action="/admin/subscribers/lists/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
+										<a class="btn btn-xs btn-default" href="'.URL::route('admin/subscribers/list', array('id' => $model->id)).'"><i class="fa fa-users"></i></a>
 										<a class="btn btn-xs btn-default" href="/admin/subscribers/lists/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
 										<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
 									</form>';})
-								->searchColumns('listname')
-								->orderColumns('listname')
-								->make();
+									->searchColumns('listname')
+									->orderColumns('listname')
+									->make();
 	}
 	
 	
@@ -192,7 +199,8 @@ class ListController extends BaseController {
 	public static function getLists($returnType = "A") //
 	{
 		$returnVar = null;
-		$Lists = Lists::get(array('id','listname'));
+		$Lists = Lists::orderBy('listname')->get(array('id','listname'));
+
 		if ($returnType == "A") 
 		{
 			$returnVar = array();

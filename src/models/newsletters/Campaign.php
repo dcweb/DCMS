@@ -2,8 +2,9 @@
 
 namespace Dcweb\Dcms\Models\Newsletters;
 
-use Eloquent;
-	class Campaign extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+
+	class Campaign extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "newsletters_campaigns";

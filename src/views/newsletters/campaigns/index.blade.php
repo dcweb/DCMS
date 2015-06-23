@@ -28,12 +28,14 @@
     ->setId('datatable')
     ->addColumn('')
     ->addColumn('Subject')
+    ->addColumn('Country')
     ->addColumn('Language')
     ->addColumn('Timestamp')
 		->addColumn('')
     ->setUrl( URL::to('admin/newsletters/api/table',array('table'=>'campaigns'))) //'admin/newsletters/api/table'
     ->setOptions(array(
         'pageLength' => 50,
+        'order'=>array(4,'desc')
         ))
     ->render() }}
 

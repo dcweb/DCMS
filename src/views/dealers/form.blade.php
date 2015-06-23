@@ -128,10 +128,5 @@ $(document).ready(function() {
 <script type="text/javascript" src="{{ asset('packages/dcweb/dcms/assets/js/jquery-ui-autocomplete.min.js') }}"></script>
 <link rel="stylesheet" type="text/css" href="{{ asset('packages/dcweb/dcms/assets/css/jquery-ui-autocomplete.css') }}">
 
-<script src="/ckeditor/ckeditor.js"></script>
-<script src="/ckfinder/ckfinder.js"></script>
-<script>
-	CKFinder.setupCKEditor( null, '/ckfinder/' );
-</script>
 
 @stop

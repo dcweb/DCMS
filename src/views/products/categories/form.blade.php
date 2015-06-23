@@ -40,11 +40,7 @@
                 {{ Form::select('parent_id', $categoryOptionValues[1], (Input::old('parent_id') ? Input::old('parent_id') : (isset($category)?$category->parent_id:'')), array('class' => 'form-control')) }}
               </div>
 							    
-              <div class="form-group">
-                {{ Form::label('sort_id', 'Sort') }}
-                {{ Form::select('sort_id', $sortOptionValues, (Input::old('sort_id') ? Input::old('sort_id') : (isset($category)?$category->sort_id:end($sortOptionValues))), array('class' => 'form-control')) }}
-              </div>
-
+    
 							<?php 
               $activeisset = false;
               $liTabs = ""; 
@@ -61,9 +57,15 @@
                     $liTabs .= '<li class="'.$active.'"><a href="#'.$lang->country.$lang->language.'" role="tab" data-toggle="tab"><img src="'.asset('packages/dcweb/dcms/assets/images/flag-'.$lang->country.'.png').'" width="18" height="12" />'.$lang->language_name.'</a></li>';		
                     $divTabContent .= '<div id="'.$lang->country.$lang->language.'" class="tab-pane '.$active.'"><div class="form-group">';
                     $divTabContent .= Form::hidden('product_category_id['.$lang->language_id.']', $lang->id);
+										
+										
+                    $divTabContent .= Form::label('sort_id['.$lang->language_id.']', 'Sort ');
+                    $divTabContent .= Form::select('sort_id['.$lang->language_id.']', $sortOptionLanguageValues[$lang->language_id], $lang->sort_id, array('class' => 'form-control'));
+										
                     $divTabContent .= Form::label('title['.$lang->language_id.']', 'Title ');
                     $divTabContent .= Form::text('title['.$lang->language_id.']', $lang->title, array('class' => 'form-control'));
-                    $divTabContent .= '</div></div>';
+                    
+										$divTabContent .= '</div></div>';
                 ?>
               @endforeach
               @endif

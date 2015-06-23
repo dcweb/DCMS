@@ -1,9 +1,9 @@
 <?php
 
 namespace Dcweb\Dcms\Models\Dealers;
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-	class ZipcityNL extends Eloquent
+	class ZipcityNL extends EloquentDefaults
 	{
 		protected $connection = 'admin';
 		

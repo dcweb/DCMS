@@ -4,9 +4,9 @@ namespace Dcweb\Dcms\Models\Users;
 
 use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\Reminders\RemindableInterface;
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-class User extends Eloquent implements UserInterface, RemindableInterface {
+class User extends EloquentDefaults implements UserInterface, RemindableInterface {
 
 	/**
 	 * The database used by the model.
@@ -14,6 +14,8 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 	 * @var string
 	 */
 	protected $connection = 'project';
+	
+	
 
 	/**
 	 * The database table used by the model.

@@ -3,9 +3,9 @@
 namespace Dcweb\Dcms\Models\Pages;
 use Dcweb\Dcms\Models\Languages\Language;
 
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-	class Page extends Eloquent
+	class Page extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "pages";
@@ -23,12 +23,12 @@ use Eloquent;
 		public function article()
 		{
 				//BelongsToMany belongsToMany(string $related, string $table = null, string $foreignKey = null, string $otherKey = null, string $relation = null) 
-        return $this->belongsToMany('\Dcweb\Dcms\Models\Articles\Detail', 'articles_detail_to_pages', 'page_id', 'article_detail_id');
+        return $this->belongsToMany('\Dcweb\Dcms\Models\Articles\Detail', 'articles_language_to_pages', 'page_id', 'article_detail_id');
 		}
 		
 	}
 	
-	class Pagetree extends Eloquent
+	class Pagetree extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "pagetree";
@@ -68,10 +68,10 @@ use Eloquent;
 		}
 	}
 	
-	class Detail extends Eloquent
+	class Detail extends EloquentDefaults
 	{
 		protected $connection = 'project';
-	  protected $table  = "pages_detail";
+	  protected $table  = "pages_language";
 		
 		public function page()
 		{

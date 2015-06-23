@@ -19,6 +19,11 @@
     </div>
 
     <div class="main-content">
+    
+  @if (Session::has('message'))
+    <div class="alert alert-info">{{ Session::get('message') }}</div>
+  @endif
+
 
       @if(isset($Newslettercampaign) && intval($Newslettercampaign->id)>0 )
           {{ Form::model($Newslettercampaign, array('route' => array('admin.newsletters.campaigns.update', $Newslettercampaign->id), 'method' => 'PUT')) }}
@@ -52,7 +57,12 @@
                   </div>
                                                                   
                   <div class="form-group">
-                    {{ Form::label('campaign_language_id', 'Language') }}
+                    {{ Form::label('campaign_country_id', 'Country') }}
+                    {{ Form::select('campaign_country_id', $aCountries, $Newslettercampaign->country_id, array('class' => 'form-control'));}}                                  
+                  </div>
+                                                                  
+                  <div class="form-group">
+                    {{ Form::label('campaign_language_id', 'Country - Language') }}
                     {{ Form::select('campaign_language_id', $aLanguages, $Newslettercampaign->language_id, array('class' => 'form-control'));}}                                  
                   </div>
 
@@ -134,6 +144,22 @@ $(document).ready(function() {
 	//CKEditor
 	$("textarea.ckeditor").ckeditor(); //custom config will be set here enabling the HTML tags//{fullPage : true}
 
+	// Default values in CKEditor Table Dialog Window.
+	CKEDITOR.on( 'dialogDefinition', function( ev ) {
+			var dialogName = ev.data.name;
+			var dialogDefinition = ev.data.definition;
+	
+			if ( dialogName == 'table' ) {
+					var info = dialogDefinition.getContents( 'info' );
+	
+					info.get( 'txtRows' )[ 'default' ] = '1'; 
+					info.get( 'txtWidth' )[ 'default' ] = '100%'; 
+					info.get( 'txtBorder' )[ 'default' ] = '0'; 
+					info.get( 'txtCellSpace' )[ 'default' ] = '0'; 
+					info.get( 'txtCellPad' )[ 'default' ] = '0'; 
+			}
+	});
+	
 	//CKFinder 	
 	$(".browse-server").click(function() {
 		var returnid = $(this).attr("id").replace("browse_","") ;
@@ -145,15 +171,15 @@ $(document).ready(function() {
 		BrowseServer( 'Files:/', returnid);
 	})
 	
-	//ADD EDIT DEL SORT SORTABLE table row  
-	$.fn.addtablerow = function( options ) {
+	//ADD EDIT COPY DEL SORT SORTABLE table row  
+	$.fn.modtablerow = function( options ) {
 
 		var table = this;
-		var rows = table.find('tbody tr').length;
 
 		addtablerow(table.find('.add-table-row'));
 		sorttablerow();
 		edittablerow(table.find('.edit-table-row'));
+		copytablerow(table.find('.copy-table-row'));
 		deltablerow(table.find('.delete-table-row'));
 		sortabletablerow();	
 
@@ -163,6 +189,7 @@ $(document).ready(function() {
 	
 					if (!table.find('tbody').length) table.find('tfoot').before("<tbody></tbody>");
 	
+					var rows = table.find('tbody tr').length;
 					rows++;
 					data = data.replace(/{ID}/g, "_"+rows);
 					data = data.replace(/{_ID}/g, rows);
@@ -171,10 +198,11 @@ $(document).ready(function() {
 	
 					sorttablerow();
 					edittablerow(table.find('.edit-table-row').last());
+					copytablerow(table.find('.copy-table-row').last());
 					deltablerow(table.find('.delete-table-row').last());
 					sortabletablerow();	
 
-					table.find('tbody tr:last textarea.codemirror').each(function(index, element) {
+					table.find('tbody tr:last textarea.codemirror').last().each(function(index, element) {
 						
 						var mode;
 						if ( $(element).hasClass("html") ) mode = "xml";
@@ -193,15 +221,86 @@ $(document).ready(function() {
 					});
 					
 					//CKEditor
-					$("textarea.ckeditor").ckeditor(); //custom config will be set here enabling the HTML tags//{fullPage : true}
+					table.find("textarea.ckeditor").last().ckeditor();
 					
 					//CKFinder 	
-					$(".browse-server").click(function() {
+					table.find(".browse-server").last().click(function() {
 						var returnid = $(this).attr("id").replace("browse_","") ;
 						BrowseServer( 'Images:/', returnid);
 					})
 					//CKFinder 	
-					$(".browse-server-files").click(function() {
+					table.find(".browse-server-files").last().click(function() {
+						var returnid = $(this).attr("id").replace("browse_","") ;
+						BrowseServer( 'Files:/', returnid);
+					})
+									
+				});
+				return false;
+			});
+		}
+
+		function edittablerow(e) {
+			e.click (function() {
+				$(this).closest('tr').find('.table-row-sub').toggle();
+				return false;
+			});
+		}
+
+		function copytablerow(e) {
+			e.click (function() {
+				var tr = $(this).closest('tr');
+				$.get( options.source, function( data ) {
+	
+					if (!table.find('tbody').length) table.find('tfoot').before("<tbody></tbody>");
+	
+					var rows = table.find('tbody tr').length;
+					rows++;
+					data = data.replace(/{ID}/g, "_"+rows);
+					data = data.replace(/{_ID}/g, rows);
+					
+					tr.after( data );
+
+					tr.next().find("input[name^='content_name']").val( tr.find("input[name^='content_name']").val() + " #" + rows );
+					tr.next().find("input[name^='content_title']").val( tr.find("input[name^='content_title']").val() );
+					tr.next().find("textarea[name^='content_body']").val( tr.find("textarea[name^='content_body']").val() );
+					tr.next().find("input[name^='content_image']").val( tr.find("input[name^='content_image']").val() );
+					tr.next().find("input[name^='content_link']").val( tr.find("input[name^='content_link']").val() );
+					tr.next().find("textarea[name^='content_layout']").val( tr.find("textarea[name^='content_layout']").val() );
+	
+					sorttablerow();
+					edittablerow(tr.next().find('.edit-table-row'));
+					copytablerow(tr.next().find('.copy-table-row'));
+					deltablerow(tr.next().find('.delete-table-row'));
+					sortabletablerow();	
+
+					tr.next().find('textarea.codemirror').each(function(index, element) {
+						
+						var mode;
+						if ( $(element).hasClass("html") ) mode = "xml";
+						if ( $(element).hasClass("css") ) mode = "css";
+						var cm = CodeMirror.fromTextArea(element, {
+							mode: mode,
+							tabSize: 2,
+							lineNumbers: true,
+							lineWrapping: true
+						});
+				
+						$('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+							cm.refresh();
+						})
+				
+					});
+					
+					//CKEditor
+					tr.next().find("textarea.ckeditor").ckeditor();
+					
+					//CKFinder 	
+					tr.next().find(".browse-server").click(function() {
+						var returnid = $(this).attr("id").replace("browse_","") ;
+						BrowseServer( 'Images:/', returnid);
+					})
+					//CKFinder 	
+					tr.next().find(".browse-server-files").click(function() {
 						var returnid = $(this).attr("id").replace("browse_","") ;
 						BrowseServer( 'Files:/', returnid);
 					})
@@ -216,13 +315,6 @@ $(document).ready(function() {
 				$(this).closest('tr').remove();
 				if (!table.find('tbody tr').length) table.find('tbody').remove();
 				sorttablerow();
-				return false;
-			});
-		}
-
-		function edittablerow(e) {
-			e.click (function() {
-				$(this).closest('tr').find('.table-row-sub').toggle();
 				return false;
 			});
 		}
@@ -244,13 +336,21 @@ $(document).ready(function() {
 				cursor: "move",
 				update: function( event, ui ) {
 					sorttablerow();
+				},
+				start: function( event, ui ) {
+					table.find("textarea.ckeditor").ckeditor(function(){
+						this.destroy();
+					});
+				},
+				stop: function( event, ui ) {
+					table.find("textarea.ckeditor").ckeditor();
 				}
 			});
 		}
 
 	}; 
 
-	$("#content table").addtablerow({
+	$("#content table").modtablerow({
 		source: "{{ URL::to('admin/newsletters/api/tablerow?data=content') }}"
 	});
 

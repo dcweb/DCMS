@@ -1,9 +1,9 @@
 <?php
 
 namespace Dcweb\Dcms\Models\Products;
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-	class Price extends Eloquent
+	class Price extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  

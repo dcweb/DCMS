@@ -69,13 +69,14 @@ class CategoryController extends BaseController {
 	 */
 	public function create()
 	{
-		$languages = DB::connection("project")->table("languages")->select((DB::connection("project")->raw("'' as title, '' as description")), "id","id as language_id", "language","country","language_name")->get();
+		$languages = DB::connection("project")->table("languages")->select((DB::connection("project")->raw("(select max(sort_id)+1 from products_categories_language where language_id = languages.id) as sort_id, '' as title, '' as description")), "id","id as language_id", "language","country","language_name")->get();
 		
 		// load the create form (app/views/categories/create.blade.php)
 		return View::make('dcms::products/categories/form')
 			->with('languages',$languages)
 			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true))
-			->with('sortOptionValues',$this->getSortOptions(1));
+			->with('sortOptionValues',$this->getSortOptions(1))
+			->with('sortOptionLanguageValues',$this->getSortOptionsLanguage(1));
 	}
 
 	public function generateCategoryTree()
@@ -105,7 +106,7 @@ class CategoryController extends BaseController {
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
 		$Languages = Language::all();
-		$rules = array('sort_id'=>'required|integer');
+		//$rules = array('sort_id'=>'required|integer');
 		foreach($Languages as $Lang)
 		{
 			$rules['title.'.$Lang->id] = 'required';
@@ -132,19 +133,23 @@ class CategoryController extends BaseController {
 							{
 									$category = new CategoryID;
 									$category->parent_id = $input["parent_id"];
-									$category->sort_id = $input["sort_id"];
+				//					$category->sort_id = $input["catsort_id"];
 									$category->admin =  Auth::dcms()->user()->username;
 									$category->save();
 							}
 							$translatedCategory = new Category; 
 							$translatedCategory->title = $input["title"][$language_id];// Input::get('langtitle.1');
-							$translatedCategory->language_id = $language_id;
+							$translatedCategory->language_id = $language_id;							
+							$translatedCategory->sort_id = $input["sort_id"][$language_id];
 							
 							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
 							$translatedCategory->admin =  Auth::dcms()->user()->username;
 							$translatedCategory->save();			
+							
+							$this->updatesort($translatedCategory->id, $language_id,	null, $input["sort_id"][$language_id]);
+							
 							CategoryID::find($category->id)->category()->save($translatedCategory);
 					}//end trim strlen title
 				}//end foreach
@@ -163,12 +168,34 @@ class CategoryController extends BaseController {
 	{
 		$sort_id = DB::connection("project")->table('products_categories')->max('sort_id');
 
-		for($i = 1; $i<=($sort_id+$setExtra); $i++)
+		for($i = 0; $i<($sort_id+$setExtra); $i++)
 		{
-			$SortOptions[$i] = $i;
+			$x = $i+1;
+			$SortOptions[$x] = $x;
 		}
 
 		return $SortOptions;
+	}	
+
+	
+	public function getSortOptionsLanguage($setExtra = 0 )
+	{
+		$result = DB::connection("project")->select('SELECT languages.id as language_id, (SELECT case when max(sort_id) is null then 0 else max(sort_id) end FROM products_categories_language WHERE products_categories_language.language_id = languages.id) as sort_id FROM languages ');
+	
+		$SortOptionsLanguage = array();		
+		if(!is_null($result) && count($result)>0)
+		{
+			foreach($result as $i => $Model)
+			{
+				for($i = 0; $i<($Model->sort_id+$setExtra); $i++)
+				{
+					$x = $i+1;
+					$SortOptionsLanguage[$Model->language_id][$x] = $x;
+				}
+			}
+		}
+		
+		return $SortOptionsLanguage;
 	}	
 
 
@@ -183,22 +210,23 @@ class CategoryController extends BaseController {
 		//	get the category
 		$category = CategoryID::find($id);
 
-	 	$languages = DB::connection("project")->select('SELECT languages.id, language, country, language_name, products_categories_detail.*
+	 	$languages = DB::connection("project")->select('SELECT languages.id, language, country, language_name, products_categories_language.*
 			FROM products_categories 
-			LEFT JOIN products_categories_detail on products_categories.id = products_categories_detail.product_category_id
-			LEFT JOIN languages on products_categories_detail.language_id = languages.id
+			LEFT JOIN products_categories_language on products_categories.id = products_categories_language.product_category_id
+			LEFT JOIN languages on products_categories_language.language_id = languages.id
 			WHERE  languages.id is not null AND  products_categories.id= ?
 			UNION
-			SELECT languages.id , language, country, language_name, \'\' , \'\' , languages.id , \'\' , \'\' , \'\' , \'\' , \'\' , \'\' 
+			SELECT languages.id , language, country, language_name, \'\' , \'\' , languages.id , \'\' , \'\' , \'\' , \'\' , \'\' , \'\', \'\' 
 			FROM languages 
-			WHERE id NOT IN (SELECT language_id FROM products_categories_detail WHERE product_category_id = ?) ORDER BY 1
+			WHERE id NOT IN (SELECT language_id FROM products_categories_language WHERE product_category_id = ?) ORDER BY 1
 			', array($id,$id));
 
 		return View::make('dcms::products/categories/form')
 			->with('category', $category)
 			->with('languages',$languages)
-			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true))
-			->with('sortOptionValues',$this->getSortOptions());
+			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(true,array('*'),array("id","productcategory","language_id","level"))) //CategoryID::OptionValueArray(true))
+			->with('sortOptionValues',$this->getSortOptions())
+			->with('sortOptionLanguageValues',$this->getSortOptionsLanguage());
 	}
 	
 	/**
@@ -218,6 +246,23 @@ class CategoryController extends BaseController {
 	*/
 		return Redirect::to('admin/products/categories');
 	}
+	
+	public function updatesort($category_language_id,$language_id, $old_sort_id, $new_sort_id)
+	{
+		//DB::table('users')->increment('votes', 1, array('name' => 'John'));		
+		if(is_null($old_sort_id) || $old_sort_id == 0)
+		{
+			DB::connection('project')->raw('UPDATE products_categories_language SET sort_id = sort_id +1 WHERE product_category_id <> 1 AND sort_id >= '.$new_sort_id.' AND id <> '.$category_language_id.' AND language_id = '.$language_id.'  ');
+		}
+		elseif ($old_sort_id > $new_sort_id)
+		{	
+			DB::connection('project')->raw('UPDATE products_categories_language SET sort_id = sort_id +1 WHERE product_category_id <> 1 AND sort_id >= '.$new_sort_id.' AND sort_id < '.$old_sort_id.' AND id <> '.$category_language_id.' AND language_id = '.$language_id.'  ');
+		}
+		elseif ($old_sort_id < $new_sort_id)
+		{	
+			DB::connection('project')->raw('UPDATE products_categories_language SET sort_id = sort_id - 1 WHERE product_category_id <> 1 AND sort_id >= '.$old_sort_id.' AND sort_id < '.$new_sort_id.' AND id <> '.$category_language_id.' AND language_id = '.$language_id.'  ');
+		}
+	}
 
 	/**
 	 * Update the specified resource in storage.
@@ -230,7 +275,7 @@ class CategoryController extends BaseController {
 		// validate
 		// read more on validation at http://laravel.com/docs/validation
 		$Languages = Language::all();
-		$rules = array('sort_id'=>'required|integer');
+	//	$rules = array('sort_id'=>'required|integer');
 		foreach($Languages as $Lang)
 		{
 			$rules['title.'.$Lang->id] = 'required';
@@ -249,10 +294,14 @@ class CategoryController extends BaseController {
 			if (isset($input["title"]) && count($input["title"])>0)
 			{
 				$category = CategoryID::find($id);
-				$category->admin =  Auth::dcms()->user()->username;
-				$category->parent_id = $input["parent_id"];
-				$category->sort_id = $input["sort_id"];
-				
+				if(!is_null($category))
+				{
+					$category->admin =  Auth::dcms()->user()->username;
+					$category->parent_id = $input["parent_id"];
+	//				$category->sort_id = $input["catsort_id"];
+					$category->save();
+				}
+								
 				foreach($input["title"] as $language_id => $title)
 				{
 					if (trim(strlen($title))>0)
@@ -261,7 +310,7 @@ class CategoryController extends BaseController {
 							{
 									$category = new CategoryID;
 									$category->parent_id = $input["parent_id"];
-									$category->sort_id = $input["sort_id"];
+			//						$category->sort_id = $input["catsort_id"];
 									$category->admin =  Auth::dcms()->user()->username;
 									$category->save();
 							}
@@ -271,14 +320,21 @@ class CategoryController extends BaseController {
 							{
 								$translatedCategory = new Category;
 							}
+							
+							$oldsort_id = $translatedCategory->sort_id;
+							
 							$translatedCategory->title = $input["title"][$language_id];// Input::get('langtitle.1');
 							$translatedCategory->language_id = $language_id;
+							$translatedCategory->sort_id = $input["sort_id"][$language_id];
 							
 							$translatedCategory->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							$translatedCategory->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
 							
 							$translatedCategory->admin =  Auth::dcms()->user()->username;
 							$translatedCategory->save();			
+							
+							$this->updatesort($translatedCategory->id, $language_id,	$oldsort_id, $input["sort_id"][$language_id]);
+							
 							CategoryID::find($category->id)->category()->save($translatedCategory);
 					}//end trim strlen title
 				}//end foreach
@@ -291,6 +347,35 @@ class CategoryController extends BaseController {
 			return Redirect::to('admin/products/categories');
 		}
 	}
+	
+	
+	public function replicateById($id = null, $overwriteSettings = array())
+	{
+		$newCategory = Category::find($id)->replicate();
+		if(count($overwriteSettings)>0)
+		{
+			foreach($overwriteSettings as $key => $value)
+			{
+				$newCategory->$key = $value;
+			}
+		}
+		$newCategory->save();
+		return $newCategory;
+	}
+	
+	public function replicateForNewLanguage($overwriteSettings = array())
+	{
+		$Categories = Category::where("language_id","=",1)->get(); //language_id 1 is fixed since this is to be taken as the default!!
+		if(!is_null($Categories) && count($Categories)>0)
+		{
+			foreach($Categories as $M)
+			{
+				$this->replicateById($M->id,$overwriteSettings);
+			}
+			$this->generateCategoryTree();
+		}
+	}
+	
 
 	/**
 	 * Remove the specified resource from storage.

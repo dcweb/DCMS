@@ -1,14 +1,15 @@
 
     <div class="clearfix">
       <div class="pull-left" style="width:45px">
-        <a class="btn btn-default sort-table-row" href=""><i class="fa fa-bars"></i></a>
+        <span class="btn btn-default sort-table-row"><i class="fa fa-bars"></i></span>
       </div>
       <div class="pull-left" style="width:50%">
-        {{ Form::text('content_name[{ID}]', ((strlen($Content->name)>0) ? $Content->name : "Block#{_ID}"), array('class' => 'form-control')) }}
+        {{ Form::text('content_name[{ID}]', ((strlen($Content->name)>0) ? $Content->name : "Block #{_ID}"), array('class' => 'form-control')) }}
 		    {{ Form::hidden('content_sortid[{ID}]', ((strlen($Content->sort_id)>0) ? $Content->sort_id : "{_ID}")) }}
       </div>
       <div class="pull-right">
         <a class="btn btn-default edit-table-row" href=""><i class="fa fa-pencil"></i></a> 
+        <a class="btn btn-default copy-table-row" href=""><i class="fa fa-copy"></i></a> 
         <a class="btn btn-default delete-table-row" href=""><i class="fa fa-trash-o"></i></a> 
       </div>
     </div>

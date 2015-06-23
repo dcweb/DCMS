@@ -37,23 +37,23 @@ class VolumeController extends BaseController {
 	{
 		return Datatable::Query(
 									DB::connection('project')
-											->table('volumes_class')
+											->table('products_volume_units')
 											->select(
-														'volumes_class.id', 
-														'volumes_class_detail.volume_class', 
-														'volumes_class_detail.volume_class_long', 
-														'volumes_class_detail.id as detail_id',
+														'products_volume_units.id', 
+														'products_volume_units_language.volume_unit', 
+														'products_volume_units_language.volume_unit_long', 
+														'products_volume_units_language.id as detail_id',
 														(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 													)
-											->join('volumes_class_detail','volumes_class.id','=','volumes_class_detail.volume_id')
-											->leftJoin('languages','volumes_class_detail.language_id', '=' , 'languages.id')
+											->join('products_volume_units_language','products_volume_units.id','=','products_volume_units_language.volume_units_id')
+											->leftJoin('languages','products_volume_units_language.language_id', '=' , 'languages.id')
 		)
 		
-						->showColumns('volume_class','volume_class_long','country')
+						->showColumns('volume_unit','volume_unit_long','country')
 						->addColumn('edit',function($model){return '<form  class="pull-right"> 
 								<a class="btn btn-xs btn-default" href="/admin/settings/volumes/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
 							</form>';})
-						->searchColumns('volume_class_long')
+						->searchColumns('volume_unit_long')
 						->make();
 	}
 
@@ -64,7 +64,7 @@ class VolumeController extends BaseController {
 	 */
 	public function create()
 	{
-		$languages =  DB::connection("project")->table("languages")->select((DB::connection("project")->raw("'' as volume_class, '' as volume_class_long")), "id","id as language_id",  "language","country","language_name")->get();
+		$languages =  DB::connection("project")->table("languages")->select((DB::connection("project")->raw("'' as volume_unit, '' as volume_unit_long")), "id","id as language_id",  "language","country","language_name")->get();
 		
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::settings/volumes/form')
@@ -94,23 +94,23 @@ class VolumeController extends BaseController {
 			
 			$input = Input::get();
 			
-			foreach($input["volume_class"] as $language_id  => $value)
+			foreach($input["volume_unit"] as $language_id  => $value)
 			{
-				if (strlen(trim($input["volume_class"][$language_id]))>0 || strlen(trim($input["volume_class_long"][$language_id]))>0 )
+				if (strlen(trim($input["volume_unit"][$language_id]))>0 || strlen(trim($input["volume_unit_long"][$language_id]))>0 )
 				{
 					//since we loop with foreach we don't want to create everytime a new article
 					if (!isset($Volume) || is_null($Volume) )
 					{
 						$Volume = new Volume;
-						$Volume->volume_class= $input["volume_class"][$language_id];
+						$Volume->volume_unit= $input["volume_unit"][$language_id];
 						$Volume->save();
 					}
 				
 					$Detail = new Detail();
-					$Detail->volume_id 		= $Volume->id;
+					$Detail->volume_units_id 		= $Volume->id;
 					$Detail->language_id 		= $language_id;
-					$Detail->volume_class		= $input["volume_class"][$language_id];
-					$Detail->volume_class_long	= $input["volume_class_long"][$language_id];
+					$Detail->volume_unit		= $input["volume_unit"][$language_id];
+					$Detail->volume_unit_long	= $input["volume_unit_long"][$language_id];
 					$Detail->save();		
 					
 					Volume::find($Volume->id)->detail()->save($Detail);
@@ -138,15 +138,15 @@ class VolumeController extends BaseController {
 			$Volume = Volume::find($id);
 			
 		 	$languages = DB::connection("project")->select('
-													SELECT language_id, languages.language, languages.country, languages.language_name,  volumes_class_detail.id, volume_id, volumes_class_detail.volume_class, volume_class_long
-													FROM volumes_class_detail
-													LEFT JOIN languages on languages.id = volumes_class_detail.language_id
-													LEFT JOIN volumes_class on volumes_class.id = volumes_class_detail.volume_id
-													WHERE  languages.id is not null AND  volume_id = ?
+													SELECT language_id, languages.language, languages.country, languages.language_name,  products_volume_units_language.id, volume_units_id, products_volume_units_language.volume_unit, volume_unit_long
+													FROM products_volume_units_language
+													LEFT JOIN languages on languages.id = products_volume_units_language.language_id
+													LEFT JOIN products_volume_units on products_volume_units.id = products_volume_units_language.volume_units_id
+													WHERE  languages.id is not null AND  volume_units_id = ?
 													UNION
 													SELECT languages.id , language, country, language_name, \'\' , \'\' ,  \'\' , \'\' 
 													FROM languages 
-													WHERE id NOT IN (SELECT language_id FROM volumes_class_detail WHERE volume_id = ?) ORDER BY 1
+													WHERE id NOT IN (SELECT language_id FROM products_volume_units_language WHERE volume_units_id = ?) ORDER BY 1
 													', array($id,$id));
 
 			// show the edit form and pass the nerd
@@ -181,27 +181,27 @@ class VolumeController extends BaseController {
 			$Volume = Volume::find($id);
 			
 			$input = Input::get();
-			foreach($input["volume_class"] as $language_id  => $value)
+			foreach($input["volume_unit"] as $language_id  => $value)
 			{
-				if (strlen(trim($input["volume_class"][$language_id]))>0 || strlen(trim($input["volume_class_long"][$language_id]))>0) //we don't want to populate the database when there is no title given
+				if (strlen(trim($input["volume_unit"][$language_id]))>0 || strlen(trim($input["volume_unit_long"][$language_id]))>0) //we don't want to populate the database when there is no title given
 				{
 					if (!isset($Volume) || is_null($Volume) )
 					{
 						$Volume = new Article;
-						$Volume->volume_class= $input["volume_class"][$language_id];
+						$Volume->volume_unit = $input["volume_unit"][$language_id];
 						$Volume->save();
 					}
 					
-					$Detail = Detail::find($input["volume_class_id"][$language_id]);
+					$Detail = Detail::find($input["volume_unit_id"][$language_id]);
 					if (is_null($Detail) === true)
 					{
 						$Detail = new Detail();
 					}
 					
-					$Detail->volume_id 		= $Volume->id;
+					$Detail->volume_units_id 		= $Volume->id;
 					$Detail->language_id 		= $language_id;
-					$Detail->volume_class		= $input["volume_class"][$language_id];
-					$Detail->volume_class_long	= $input["volume_class_long"][$language_id];
+					$Detail->volume_unit		= $input["volume_unit"][$language_id];
+					$Detail->volume_unit_long	= $input["volume_unit_long"][$language_id];
 					$Detail->save();		
 					
 					Volume::find($Volume->id)->detail()->save($Detail);
@@ -209,10 +209,37 @@ class VolumeController extends BaseController {
 			}//end foreach
 			
 			// redirect
-			Session::flash('message', 'Successfully updated article!');
+			Session::flash('message', 'Successfully updated volume unit!');
 			return Redirect::to('admin/settings/volumes');
 		}
 	}
+	
+	public function replicateById($id = null, $overwriteSettings = array())
+	{
+		$newVolumedetail = Detail::find($id)->replicate();
+		if(count($overwriteSettings)>0)
+		{
+			foreach($overwriteSettings as $key => $value)
+			{
+				$newVolumedetail->$key = $value;
+			}
+		}
+		$newVolumedetail->save();
+		return $newVolumedetail;
+	}
+	
+	public function replicateForNewLanguage($overwriteSettings = array())
+	{
+		$Detail = Detail::where("language_id","=",1)->get(); //language_id 1 is fixed since this is to be taken as the default!!
+		if(!is_null($Detail) && count($Detail)>0)
+		{
+			foreach($Detail as $M)
+			{
+				$this->replicateById($M->id,$overwriteSettings);
+			}
+		}
+	}
+	
 
 	/**
 	 * Remove the specified resource from storage.
@@ -233,7 +260,7 @@ class VolumeController extends BaseController {
 	//	}
 		
 		// redirect
-		Session::flash('message', 'Nothing has been deleted the article! Ask DBA for thorough delete.');
+		Session::flash('message', 'No volume has been deleted! Ask DBA for thorough delete.');
 		return Redirect::to('admin/settings/volumes');
 	}
 }

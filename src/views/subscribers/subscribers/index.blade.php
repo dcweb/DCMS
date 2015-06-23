@@ -6,7 +6,8 @@
       <h1>Subscribers</h1>
       <ol class="breadcrumb">
         <li><a href="{{ URL::to('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-        <li class="active"><i class="fa fa-newspaper-o"></i> Subscribers</li>
+        @if(isset($List) && !is_null($List)) <li class=""><a href="{{ URL::to('admin/subscribers/lists') }}"><i class="fa fa-newspaper-o"></i> Lists</a></li> @else  <li class="active"><i class="fa fa-newspaper-o"></i> Subscribers</li> @endif 
+        @if(isset($List) && !is_null($List)) <li class="active"> {{$List->listname}}</li> @endif
       </ol>
     </div>
 
@@ -29,8 +30,9 @@
     ->addColumn('Lastname')
     ->addColumn('Email')
     ->addColumn('List')
+    ->addColumn('Newsletter')
 		->addColumn('')
-    ->setUrl( URL::to('admin/subscribers/api/table'))
+    ->setUrl( URL::Route('admin/subscribers/api/table',array('id'=>$id)))
     ->setOptions(array(
         'pageLength' => 50,
         ))

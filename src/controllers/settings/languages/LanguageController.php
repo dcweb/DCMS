@@ -5,10 +5,14 @@ namespace Dcweb\Dcms\Controllers\Settings;
 use Dcweb\Dcms\Models\Countries\Country;
 use Dcweb\Dcms\Models\Languages\Language;
 
-use Dcweb\Dcms\Models\Products\CategoryID;
-use Dcweb\Dcms\Models\Products\Category;
+//use Dcweb\Dcms\Models\Products\CategoryID;
+//use Dcweb\Dcms\Models\Products\Category;
 
 use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
+
+use Dcweb\Dcms\Controllers\Products\CategoryController as productcategorycontroller;
+use Dcweb\Dcms\Controllers\Settings\VolumeController;
+use Dcweb\Dcms\Controllers\Articles\CategoryController as articlecategorycontroller;
 
 use View;
 use Input;
@@ -46,8 +50,8 @@ class LanguageController extends BaseController {
 														'languages.language_name', 
 														(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 													)
-											//->join('articles_detail','articles.id','=','articles_detail.article_id')
-											//->leftJoin('languages','articles_detail.language_id', '=' , 'languages.id')
+											//->join('articles_language','articles.id','=','articles_language.article_id')
+											//->leftJoin('languages','articles_language.language_id', '=' , 'languages.id')
 		)
 		
 						->showColumns('language_name','country')
@@ -97,8 +101,20 @@ class LanguageController extends BaseController {
 			$Language->language_name = $input['language_name'];
 			$Language->country = strtoupper($this->getCountry($input['country_id']));
 			$Language->save();
+			
+			$pCategories = new productcategorycontroller;
+			$pCategories->replicateForNewLanguage(array("language_id"=>$Language->id));
+			
+			$aCategories = new articlecategorycontroller;
+			$aCategories->replicateForNewLanguage(array("language_id"=>$Language->id));
+			
+			$Volumes = new VolumeController;
+			$Volumes->replicateForNewLanguage(array("language_id"=>$Language->id));
+			
+			
+			
 
-
+			/*
 			$translatedCategory = new Category; 
 			$translatedCategory->title = "root";// Input::get('langtitle.1');
 			$translatedCategory->language_id = $Language->id;
@@ -114,6 +130,7 @@ class LanguageController extends BaseController {
 			$response = Route::dispatch($request);
 			//$content = $response->getContent();
 			//$code = $response->getStatusCode();
+			*/
 			
 			// redirect
 			Session::flash('message', 'Successfully created language!');

@@ -29,20 +29,29 @@ class SubscriberController extends BaseController {
 	 *
 	 * @return Response
 	 */
-	public function index()
+	public function index($id = null)
 	{
-		return View::make('dcms::subscribers/subscribers/index');
+		$List = null;
+		if(!is_null($id)) $List = Lists::find($id);
+		
+		return View::make('dcms::subscribers/subscribers/index')
+							->with('id',$id)
+							->with('List',$List);
+							
 	}
 	
-	
-	public function getDatatable()// or we give the modelid of a certain model and find the details of this model - at this moment we only give the default checked radiobutton
+	public function getDatatable($id = null)// or we give the modelid of a certain model and find the details of this model - at this moment we only give the default checked radiobutton
 	{
-			return	Datatable::collection(Subscribers::get(array('firstname','lastname','email','id','list_id')))
+			if(is_null($id) || intval($id)<=0)	$DT = Datatable::collection(Subscribers::with('lists')->get(array('firstname','lastname','email','id','list_id','newsletter')));
+			else $DT = Datatable::collection(Subscribers::where("list_id","=",intval($id))->with('lists')->get(array('firstname','lastname','email','id','list_id','newsletter')));
+			
+			return	$DT
 						->showColumns('firstname','lastname','email')
 						 ->addColumn('name',function($model)
 														{
 																return $model->lists->listname;
 														})
+						->showColumns('newsletter')
 						->addColumn('edit', function($model){ return '<form method="POST" action="/admin/subscribers/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
 										<a class="btn btn-xs btn-default" href="/admin/subscribers/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
 										<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
@@ -107,7 +116,7 @@ class SubscriberController extends BaseController {
 	{
 		if(intval($Subscriber->id)>0)
 		{	
-				DB::connection('project')->select(DB::raw("UPDATE subscribers SET cryptid = hex(AES_ENCRYPT(concat(id,':',email), '".$this->aespassword."')) WHERE id = '".intval($Subscriber->id)."'"));
+				DB::connection('project')->select(DB::raw("UPDATE subscribers SET cryptid = hex(AES_ENCRYPT(concat(list_id,':',email), '".$this->aespassword."')) WHERE id = '".intval($Subscriber->id)."'"));
 		}
 	}
 	
@@ -133,7 +142,7 @@ class SubscriberController extends BaseController {
 		$Subscriber->city				= $input['city'];
 		$Subscriber->country		= $input['country'];
 		$Subscriber->language		= $input['language'];
-		$Subscriber->newsletter	= $input['newsletter'];
+		$Subscriber->newsletter	= (isset($input['newsletter'])?$input['newsletter']:0);
 		$Subscriber->admin 			= Auth::dcms()->user()->username;
 		$Subscriber->save();		
 		
@@ -155,7 +164,7 @@ class SubscriberController extends BaseController {
 			$Subscriber = $this->saveSubcriberProperties();
 			// redirect
 			Session::flash('message', 'Successfully created subscriber!');
-			return Redirect::to('admin/subscribers');
+			return Redirect::to('admin/subscribers/list/'.$Subscriber->list_id);
 			
 		}else return  $this->saveSubcriberProperties();
 	}
@@ -174,7 +183,7 @@ class SubscriberController extends BaseController {
 			$Subscriber = $this->saveSubcriberProperties($id);
 			// redirect
 			Session::flash('message', 'Successfully updated subscriber!');
-			return Redirect::to('admin/subscribers');
+			return Redirect::to('admin/subscribers/list/'.$Subscriber->list_id);
 			
 		}else return  $this->saveSubcriberProperties();
 	}
@@ -188,11 +197,13 @@ class SubscriberController extends BaseController {
 	 */
 	public function destroy($id)
 	{
+		
 		Subscribers::destroy($id);
 	
 		// redirect
 		Session::flash('message', 'Successfully deleted the subscriber!');
-		return Redirect::to('admin/subscribers');
+//		return Redirect::to('admin/subscribers');
+		return Redirect::back();
 	}
 	
 }

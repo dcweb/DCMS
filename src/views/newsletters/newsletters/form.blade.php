@@ -46,7 +46,7 @@
 
                   <div class="form-group">
                     {{ Form::label('default_list', 'Default List') }}
-                    {{ Form::select('default_list',array_merge(array(0=>'- None -'),$aLists), $Newsletter->default_list, array('class' => 'form-control')); }}
+                    {{ Form::select('default_list', array('0'=>'- None -') + $aLists, $Newsletter->default_list, array('class' => 'form-control')); }}
                   </div>
 
                   <div class="form-group">
@@ -76,12 +76,13 @@
   
                 <div id="campaign" class="tab-pane">
   
-                  <div class="btnbar btnbar-right" style="margin-bottom: 24px;"><a class="btn btn-small btn-primary" href="{{ URL::to('/admin/newsletters/create') }}">Create new</a></div>
+                  <div class="btnbar btnbar-right" style="margin-bottom: 24px;"><a class="btn btn-small btn-primary" href="{{ URL::to('/admin/newsletters/campaigns/create') }}">Create new</a></div>
 
                   {{ Datatable::table()
                       ->setId('campaigns-datatable')
                       ->addColumn('')
                       ->addColumn('Subject')
+                      ->addColumn('Country')
                       ->addColumn('Language')
                       ->addColumn('Timestamp')
                       ->addColumn('')
@@ -89,6 +90,7 @@
                       ->setOptions(array(
                           'pageLength' => 10,
                           'autoWidth' => false,
+									        'order'=>array(4,'desc')
                           ))
                       ->render() }}
   

@@ -2,9 +2,11 @@
 
 namespace Dcweb\Dcms\Models\Products;
 
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-	class Product extends Eloquent
+use Auth;
+
+	class Product extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "products";
@@ -21,5 +23,4 @@ use Eloquent;
 		{
 			return $this->belongsTo('\Dcweb\Dcms\Models\Products\Price','product_id');
 		}
-		
 	}

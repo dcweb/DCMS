@@ -14,6 +14,7 @@ use Datatable;
 use Session;
 use Hash;
 use Mail;
+use App;
 
 class UserController extends BaseController {
 
@@ -28,8 +29,13 @@ class UserController extends BaseController {
         $credentials = $this->getLoginCredentials();
   
         if (Auth::dcms()->attempt($credentials)) {
-					session_start();
+					if(session_id() == '') session_start();
 					$_SESSION["admin"]["allow_ckfinder"] = true;
+					
+					$User = User::find(Auth::dcms()->user()->id);
+					$User->last_login = date("Y-m-d H:i:s");
+					$User->save();
+					
 					  return Redirect::intended("admin/dashboard"); //intended will keep in mind your entry point, if none has been found a default is given
         //  return Redirect::route("admin/dashboard");
         }
@@ -71,7 +77,65 @@ class UserController extends BaseController {
   
 	public function profile()
 	{
-		return View::make("dcms::users/profile");
+		$user = User::find(Auth::dcms()->user()->id);
+		$user->password = "";
+		
+		return View::make("dcms::users/profile")->with('user',$user);
+	}
+  
+	public function updateProfile()
+	{
+		$passwordError = false; 
+		if ($this->isPostRequest()) {
+			
+			$validatorrules = array("email"=>"required|email");
+			
+			if(trim(Input::get("password"))<>"" || trim(Input::get("newpassword"))<>"" || trim(Input::get("newpasswordrepeat"))<>"" )
+			{
+				$validateCurrentpassword = true;
+				$validatorrules = array_merge($validatorrules, array("password" => "required","newpassword" => "required|min:6","newpasswordrepeat" => "same:newpassword"));
+				if(Hash::check(Input::get('password'),Auth::dcms()->user()->getAuthPassword()) !==  true) $passwordError = true;
+			}
+			
+		 	$validator =  Validator::make(Input::all()
+																		, $validatorrules
+																		,array(	"email"=>"Email should be a valid email"
+																						,"required"=>"The :attribute field is required"
+																						,"password.required"=>"The current password is required"
+																						,"newpassword.required"=>"A new password is required"
+																						,"newpassword.min"=>"A new password needs minimum 6 characters"
+																						,"newpasswordrepeat.same"=>"the new password - repeat field needs to be the same as the new password" ));
+
+      if ($validator->passes() && $passwordError == false) {
+				
+				$user = User::find(Auth::dcms()->user()->id);
+	
+				$user->name		= Input::get('name');
+				$user->email	= Input::get('email');
+				
+				if (strlen(trim(Input::get('newpassword')))>0){
+					$user->password = Hash::make(Input::get('newpassword'));
+				}
+				$user->save();
+				
+				
+				Session::flash('message', 'Successfully updated profile!');
+				return Redirect::to('admin/profile');
+  
+	    } elseif($passwordError == true){
+				  return Redirect::back()
+          ->withInput()
+          ->withErrors(array("error"=>"Current password does not match"));
+	
+			}else {
+        return Redirect::back()
+          ->withInput()
+          ->withErrors($validator);
+      }
+			
+    }else{
+			return Redirect::to('admin/profile');
+		}
 	}
 	
 	public function logout()
@@ -123,7 +187,7 @@ class UserController extends BaseController {
 		$response = $this->resetPassword($credentials);
 	 
 		if ($response === Password::PASSWORD_RESET) {
-		  return Redirect::route("admin/users/profile");
+		  return Redirect::route("admin/profile");
 		}
 	 
 		return Redirect::back()
@@ -180,7 +244,6 @@ class UserController extends BaseController {
 						->showColumns('username')
 						->showColumns('role')
 						->addColumn('edit',function($model){return '<form method="POST" action="/admin/users/'.$model->id.'" accept-charset="UTF-8" class="pull-right"><input name="_token" type="hidden" value="'.csrf_token().'">					<input name="_method" type="hidden" value="DELETE">					<!-- <input class="btn btn-warning" type="submit" value="Delete this User"> -->
-								<a class="btn btn-xs btn-default" href="/admin/users/'.$model->id.'"><i class="fa fa-eye"></i></a>
 								<a class="btn btn-xs btn-default" href="/admin/users/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
 								<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
 							</form>';})
@@ -247,7 +310,7 @@ class UserController extends BaseController {
 	 *
 	 * @param  int  $id
 	 * @return Response
-	 */
+	
 	public function show($id)
 	{
 		//
@@ -259,7 +322,7 @@ class UserController extends BaseController {
 		return View::make('dcms::users/show')
 			->with('user', $user);
 	}
-
+ */
 
 	/**
 	 * Show the form for editing the specified resource.

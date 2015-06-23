@@ -47,16 +47,16 @@
 
                     <div id="{{ $information->language . '-' . $information->country }}" class="tab-pane {{ ($key == 0 ? 'active' : '') }}">
 
-                      {{ Form::hidden('volume_class_id[' . $information->language_id . ']', $information->id) }}								
+                      {{ Form::hidden('volume_unit_id[' . $information->language_id . ']', $information->id) }}								
                                                     
                       <div class="form-group">
-                        {{ Form::label('volume_class[' . $information->language_id . ']', 'Short') }}
-                        {{ Form::text('volume_class[' . $information->language_id . ']', (Input::old('volume_class[' . $information->language_id . ']') ? Input::old('volume_class[' . $information->language_id . ']') : $information->volume_class ), array('class' => 'form-control')) }}
+                        {{ Form::label('volume_unit[' . $information->language_id . ']', 'Short') }}
+                        {{ Form::text('volume_unit[' . $information->language_id . ']', (Input::old('volume_unit[' . $information->language_id . ']') ? Input::old('volume_unit[' . $information->language_id . ']') : $information->volume_unit ), array('class' => 'form-control')) }}
                       </div>
                   
                       <div class="form-group">
-                        {{ Form::label('volume_class_long[' . $information->language_id . ']', 'Volume') }}
-                        {{ Form::text('volume_class_long[' . $information->language_id . ']', (Input::old('volume_class_long[' . $information->language_id . ']') ? Input::old('volume_class_long[' . $information->language_id . ']') : $information->volume_class_long ), array('class' => 'form-control')) }}
+                        {{ Form::label('volume_unit_long[' . $information->language_id . ']', 'Volume') }}
+                        {{ Form::text('volume_unit_long[' . $information->language_id . ']', (Input::old('volume_unit_long[' . $information->language_id . ']') ? Input::old('volume_unit_long[' . $information->language_id . ']') : $information->volume_unit_long ), array('class' => 'form-control')) }}
                       </div>
                                                                         
                     </div>

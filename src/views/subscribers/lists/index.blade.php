@@ -3,10 +3,9 @@
 @section("content")
 
     <div class="main-header">
-      <h1>Subscribers</h1>
+      <h1>Lists</h1>
       <ol class="breadcrumb">
         <li><a href="{{ URL::to('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-        <li><a href="{{ URL::to('admin/subscribers') }}"><i class="fa fa-dashboard"></i> Subscribers</a></li>
         <li class="active"><i class="fa fa-newspaper-o"></i> Lists</li>
       </ol>
     </div>
@@ -27,6 +26,7 @@
  {{ Datatable::table()
     ->setId('datatable')
     ->addColumn('Listname')
+    ->addColumn('Subscribers')
 		->addColumn('')
     ->setUrl( URL::to('admin/subscribers/lists/api/table'))
     ->setOptions(array(

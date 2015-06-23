@@ -2,9 +2,9 @@
 
 namespace Dcweb\Dcms\Models\Products;
 use Dcweb\Dcms\Models\Languages\Language;
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-	class CategoryID extends Eloquent
+	class CategoryID extends EloquentDefaults
 	{
 		protected $table  = "products_categories";
 		
@@ -22,7 +22,7 @@ use Eloquent;
 		}
 	}
 		
-	class Categorytree extends Eloquent
+	class Categorytree extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "productscategorytree";

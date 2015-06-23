@@ -1,9 +1,10 @@
 <?php
 
 namespace Dcweb\Dcms\Models\Dealers;
-use Eloquent;
 
-	class Dealer extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+
+	class Dealer extends EloquentDefaults
 	{
 		protected $connection = 'project';
 		protected $table  = "dealers";

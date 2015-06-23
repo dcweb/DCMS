@@ -35,7 +35,7 @@
                 @endif
         
                 <div class="form-group">
-                  {{ Form::label('country', 'Country (lower-case two-letter codes as defined by ISO-3166)') }} 
+                  {{ Form::label('country', 'Country (upper-case two-letter codes as defined by ISO-3166 - RFC 3066)') }} 
                   {{ Form::text('country', Input::old('country') , array('class' => 'form-control')) }}
                 </div>
             

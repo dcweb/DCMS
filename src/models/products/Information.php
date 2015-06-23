@@ -1,9 +1,9 @@
 <?php
 
 namespace Dcweb\Dcms\Models\Products;
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-	class Information extends Eloquent
+	class Information extends EloquentDefaults
 	{
 		protected $connection = 'project';
 		protected $table  = "products_information";

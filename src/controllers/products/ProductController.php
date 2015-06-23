@@ -3,6 +3,7 @@ namespace Dcweb\Dcms\Controllers\Products;
 
 use Dcweb\Dcms\Models\Products\Product;
 use Dcweb\Dcms\Models\Products\Information;
+use Dcweb\Dcms\Models\Products\Attachment;
 use Dcweb\Dcms\Models\Products\Price;
 use Dcweb\Dcms\Models\Products\CategoryID;
 use Dcweb\Dcms\Models\Products\Categorytree;
@@ -20,7 +21,9 @@ use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 class ProductController extends BaseController {
 	
 	public $informatationColumNames = array();
+	public $informatationColumNamesDefaults = array(); // TO DO - the input on the information tab are array based
 	public $productColumNames = array();
+	public $productColumnNamesDefaults = array(); // e.g. checkboxes left blank will result in NULL database value, if this is not what you want, you can set e.g. array('checkbox_name'=>'0');
 	public $extendgeneralTemplate = ""; 
 	public $informationTemplate = ""; 
 	
@@ -38,7 +41,7 @@ class ProductController extends BaseController {
 																,'eancode'=>'eancode'
 																,'image'=>'image'
 																,'volume'=>'volume'
-																,'volume_unit_class'=>'volume_unit_class'
+																,'volume_unit_id'=>'volume_unit_id'
 															);
 															
 		$this->extendgeneralTemplate = null; 
@@ -90,7 +93,7 @@ class ProductController extends BaseController {
 			foreach($this->getTaxClasses("array") as $taxid => $tax)
 			{
 				$selected = ""; 
-				if (isset($Price->tax_class_id) && $taxid == $Price->tax_class_id) $selected = "selected";
+				if (isset($Price->price_tax_id) && $taxid == $Price->price_tax_id) $selected = "selected";
 				
 				$tax_option .= '<option value="'.$taxid.'" '.$selected.' >'.$tax.'</option>';
 			}
@@ -99,6 +102,7 @@ class ProductController extends BaseController {
 			
 			//------------------------------------------------------------------------
 			// 							TEMPLATE FOR THE PRICE ROW
+			// 		the {INDEX} tag will be replaced in the form.blade, and this script to the attachment database id - or some text to identify its new
 			//------------------------------------------------------------------------
 			$rowstring .= ' <tr>
 												<td>
@@ -110,12 +114,12 @@ class ProductController extends BaseController {
 													<input id="price[{INDEX}]" name="price[{INDEX}]" class="form-control" type="text" value="'.(isset($Price->price)?$Price->price:"").'">
 												</td>
 												<td>
-													<select id="valuta_class_id[{INDEX}]" name="valuta_class_id[{INDEX}]" class="form-control">
+													<select id="price_valuta_id[{INDEX}]" name="price_valuta_id[{INDEX}]" class="form-control">
 														<option value="1">euro</option>
 													</select>
 												</td>
 												<td>
-													<select id="tax_class_id[{INDEX}]" name="tax_class_id[{INDEX}]" class="form-control">
+													<select id="price_tax_id[{INDEX}]" name="price_tax_id[{INDEX}]" class="form-control">
 														'.$tax_option.'
 													</select>
 												</td>
@@ -131,11 +135,83 @@ class ProductController extends BaseController {
 	}
 	
 	
+		
+	/**
+	 * $mDefaults contains an array of Price-Models 
+	 *
+	 * @return the row to inject prices
+	 */
+	public function getAttachmentsRow($mDefaults=array(),$forceEmpty = false)
+	{
+		$rowstring = ""; 
+		
+		$openbody = true;
+		$closebody = true;
+		if ($forceEmpty === true && empty($mDefaults) === true)
+		{
+			$openbody = false;
+			$closebody = false;
+			$mDefaults[] = (object) array();
+		}
+		
+		foreach($mDefaults as $Attachment)
+		{
+			$countrieslangauge_option = ""; 
+			foreach($this->getCountriesLanguages("array") as $language_id => $language_COUNTRY)
+			{
+				$selected = ""; 
+				if (isset($Attachment->language_id) && $language_id == $Attachment->language_id) $selected = "selected";
+				
+				$countrieslangauge_option .= '<option value="'.$language_id.'" '.$selected.'>'.$language_COUNTRY.'</option>';
+			}
+			
+			if ($openbody === true ) $rowstring .= '<tbody >';
+			
+			//------------------------------------------------------------------------
+			// 							TEMPLATE FOR THE PRICE ROW
+			// 		the {INDEX} tag will be replaced in the form.blade, and this script to the attachment database id - or some text to identify its new
+			//------------------------------------------------------------------------
+			$rowstring .= ' <tr>
+												<td>
+													<select id="attachment-language-id[{INDEX}]" class="form-control" name="attachment-language-id[{INDEX}]">
+														'.$countrieslangauge_option.'
+													</select>
+												</td>
+												<td>
+												
+													<div class="input-group">
+														<input type="text" name="attachment-file[{INDEX}]" value="'.(isset($Attachment->file)?$Attachment->file:"").'" class="form-control" id="attachmentfile{INDEX}" />
+														<span class="input-group-btn">
+															<button class="btn btn-primary browse-server-files" id="browse_attachmentfile{INDEX}" type="button">Browse Files</button>
+														</span>
+													</div>
+													
+												</td>
+												</td>
+												<td>
+													<input id="attachmentfilename[{INDEX}]" name="attachment-filename[{INDEX}]" class="form-control" type="text" value="'.(isset($Attachment->filename)?$Attachment->filename:"").'">
+												</td>
+												<td><a class="btn btn-default pull-right delete-table-row" href=""><i class="fa fa-trash-o"></i></a></td>
+											</tr>';
+			
+			if (isset($Attachment->id) && intval($Attachment->id)>0) $rowstring = str_replace("{INDEX}",$Attachment->id,$rowstring);
+			$openbody = false; 
+		}
+		if ($closebody === true) $rowstring .= '</tbody>';
+		
+		return $rowstring;
+	}
+	
+	
 	public function getTableRow()
 	{
 		if (Input::get("data") === "price") 
 		{
 			return $this->getPriceRow(null, true);
+		}
+		elseif (Input::get("data") === "attachments") 
+		{
+			return $this->getAttachmentsRow(null, true);
 		}
 	}	
 	
@@ -201,11 +277,35 @@ left join countries as settings on languages.country_id = settings.id
 						->make(); 
 	}
 
+	//return the model/object (id, country, language) or an array e.g. array(language_id => language-COUNTRY)
+	public function getCountriesLanguages($returnType = "array")
+	{
+		//RFC 3066
+		$oCountriesLanguages = DB::connection("project")->select('SELECT id, country, language FROM languages ');
+		
+		if ($returnType === "model") 
+		{
+			return $oCountriesLanguages;
+		}
+		else
+		{
+			$aCountryLanguage = array();
+			if(!is_null($oCountriesLanguages) && count($oCountriesLanguages)>0)
+			{
+				foreach($oCountriesLanguages as $M)
+				{
+					$aCountryLanguage[$M->id] = strtolower($M->language)."-".strtoupper($M->country);
+				}
+			}
+			return $aCountryLanguage;
+		}
+	}
 
-	public function getCountries($ModelArray = "array")
+	//return the model/object or an array e.g. array(counrty_id => counryname)
+	public function getCountries($returnType = "array")
 	{
 		$oCountries =  DB::connection("project")->select('SELECT id, country_name FROM countries');
-		if ($ModelArray === "model") {
+		if ($returnType === "model") {
 			return $oCountries;
 		}
 		else
@@ -224,7 +324,7 @@ left join countries as settings on languages.country_id = settings.id
 	{
 		//volumeclasses
 		//there is no model for VOLUMES so no eloquent querying here
-		$oTaxClasses =  DB::connection("project")->select('SELECT id, tax_class as tax FROM tax_class');
+		$oTaxClasses =  DB::connection("project")->select('SELECT id, tax as tax FROM products_price_tax');
 		
 		if ($returnType === "model")
 		{
@@ -247,7 +347,7 @@ left join countries as settings on languages.country_id = settings.id
 	{
 		//volumeclasses
 		//there is no model for VOLUMES so no eloquent querying here
-		$oVolumeClasses =  DB::connection("project")->select('SELECT id, volume_class as volume FROM volumes_class');
+		$oVolumeClasses =  DB::connection("project")->select('SELECT id, volume_unit as volume FROM products_volume_units ORDER BY 2');
 		
 		if ($returnType === "model")
 		{
@@ -321,6 +421,7 @@ left join countries as settings on languages.country_id = settings.id
 	protected function saveProductPrice(Product $Product)
 	{
 		$input = Input::get();
+		$donotdeleteids = array();
 		
 		//---------------------------------------------
 		// PRODUCT PRICE (Availability per country)
@@ -338,15 +439,53 @@ left join countries as settings on languages.country_id = settings.id
 				$pPrice->country_id 		= $input['price-country-id'][$price_id];
 				$pPrice->price 					= str_replace(",",".",$input['price'][$price_id]);
 				$pPrice->product_id 		= $Product->id;
-				$pPrice->valuta_class_id = $input['valuta_class_id'][$price_id];
-				$pPrice->tax_class_id 	= $input['tax_class_id'][$price_id];
-				$pPrice->admin 					=  Auth::dcms()->user()->username;
+				$pPrice->price_valuta_id = $input['price_valuta_id'][$price_id];
+				$pPrice->price_tax_id 	= $input['price_tax_id'][$price_id];
+		//		$pPrice->admin 					=  Auth::dcms()->user()->username;
 				$pPrice->save();
+				
+				$donotdeleteids[$pPrice->id] = $pPrice->id;
 			}
 		}
 		
 		//delete all un-used or recently deleted prices
-		Price::where('product_id','=',$Product->id)->whereNotIn('id',array(array_keys($input['price-country-id'])))->delete();
+		$Price = Price::where('product_id','=',$Product->id);
+		if(count($donotdeleteids)>0) $Price->whereNotIn('id',$donotdeleteids);
+		$Price->delete();
+	}
+	
+	//save the attachments to the model
+	protected function saveProductAttachments(Product $Product)
+	{
+		$input = Input::get();
+		$donotdeleteids = array();
+		
+		//---------------------------------------------
+		// PRODUCT Attachemnts (Availability per language_id)
+		//---------------------------------------------	
+		if (isset($input["attachment-language-id"]) && count($input["attachment-language-id"])>0)
+		{
+			foreach($input['attachment-language-id'] as $attachment_id => $language_id)
+			{
+				$mAttachment = null;
+				$mAttachment = Attachment::find($attachment_id);  //we make an update when we get an PIM-id(products_data.id) from the form
+				if (is_null($mAttachment) === true)  // if we couln't find a Model for the given PIM-id we need to create/add a new one.
+				{
+					$mAttachment = new Attachment;
+				}
+				$mAttachment->product_id 	= $Product->id;
+				$mAttachment->language_id = $language_id;
+				$mAttachment->file 				= str_replace(",",".",$input['attachment-file'][$attachment_id]);
+				$mAttachment->filename 		= str_replace(",",".",$input['attachment-filename'][$attachment_id]);//$Attachment->id;
+				$mAttachment->save();
+				$donotdeleteids[$mAttachment->id] = $mAttachment->id;
+			}
+		}
+		
+		//delete all un-used or recently deleted prices
+		$Attachment = Attachment::where('product_id','=',$Product->id);
+		if(count($donotdeleteids)>0) $Attachment->whereNotIn('id',$donotdeleteids);
+		$Attachment->delete();
 	}
 
 
@@ -363,10 +502,17 @@ left join countries as settings on languages.country_id = settings.id
 		
 		foreach($this->productColumNames as $column => $inputname)
 		{
-			$Product->$column = Input::get($inputname);
+			if( !Input::has($inputname) && array_key_exists($inputname,$this->productColumnNamesDefaults)) 
+			{
+				$Product->$column = $this->productColumnNamesDefaults[$inputname];
+			}
+			else
+			{
+				$Product->$column = Input::get($inputname);
+			}
 		}
 		
-		$Product->admin =  Auth::dcms()->user()->username;
+		//$Product->admin =  Auth::dcms()->user()->username;
 		$Product->save();
 		
 		$Product->information()->detach(); //detach any information setting, this will be set up using teh saveProductInformation() method
@@ -405,13 +551,27 @@ left join countries as settings on languages.country_id = settings.id
 					foreach($this->informationColumNames as $column => $inputname)
 					{
 						$pInformation->$column = $input[$inputname][$i];
+						
+						/*
+							// TO DO
+							//this should go array based input::has('some array name')
+							if( !Input::has($inputname) && array_key_exists($inputname,$this->productColumnNamesDefaults)) 
+							{
+								$Product->$column = $this->productColumnNamesDefaults[$inputname];
+							}
+							else
+							{
+								$pInformation->$column = $input[$inputname][$i];
+							}
+						*/
+						
 					}
 					
 					$pInformation->language_id 	= $input["information_language_id"][$i];//$language_id;
 					$pInformation->product_category_id = ($input[$this->informationColumNames['product_category_id']][$i]==0?NULL:$input[$this->informationColumNames['product_category_id']][$i]);
 					$pInformation->url_slug 		= SEOHelpers::SEOUrl($input[$this->informationColumNames['url_slug']][$i]); 
 					$pInformation->url_path 		= SEOHelpers::SEOUrl($input[$this->informationColumNames['url_path']][$i]); 
-					$pInformation->admin 				=  Auth::dcms()->user()->username;
+			//		$pInformation->admin 				=  Auth::dcms()->user()->username;
 					$pInformation->save();
 					$Product->information()->attach($pInformation->id);
 					
@@ -472,6 +632,7 @@ left join countries as settings on languages.country_id = settings.id
 			$Product = $this->saveProductProperties();
 			$this->saveProductInformation($Product);
 			$this->saveProductPrice($Product);
+			$this->saveProductAttachments($Product);
 			
 			// redirect
 			Session::flash('message', 'Successfully created Product!');
@@ -516,8 +677,11 @@ left join countries as settings on languages.country_id = settings.id
 		$product = Product::find($id);	
 		
 		//build the rows with the prices based on the query result / model
-		$mPrices= DB::connection("project")->select('SELECT products_price.id , country_id, product_id, country_name, price, valuta_class_id, tax_class_id FROM products_price INNER JOIN countries ON countries.id = products_price.country_id WHERE product_id = ? ',array($id));
+		$mPrices= DB::connection("project")->select('SELECT products_price.id , country_id, product_id, country_name, price, price_valuta_id, price_tax_id FROM products_price INNER JOIN countries ON countries.id = products_price.country_id WHERE product_id = ? ',array($id));
 		$rowPrices = $this->getPriceRow($mPrices);
+		
+		$mAttachments = DB::connection("project")->select('SELECT products_attachments.id , language_id, product_id, file,filename FROM products_attachments WHERE product_id = ? ',array($id));
+		$rowAttachments = $this->getAttachmentsRow($mAttachments);
 		
 		$languageinformation = $this->getInformation($id);
 		
@@ -528,9 +692,8 @@ left join countries as settings on languages.country_id = settings.id
 			->with('informationtemplate', $this->informationTemplate) //giving null will make a fallback to the default productinformation template on the package
 			->with('languageinformation', $languageinformation)
 			->with('volumeclasses', $this->getVolumesClasses("array"))
-			->with('taxclasses', $this->getTaxClasses("array"))
 			->with('rowPrices', $rowPrices)
-			->with('countries', $this->getCountries("model"))
+			->with('rowAttachments', $rowAttachments)
 			->with('categoryOptionValues',Categorytree::OptionValueTreeArray(false)) //CategoryID::OptionValueArray(true))
 			->with('sortOptionValues',$this->getSortOptions($languageinformation));
 	}
@@ -538,6 +701,7 @@ left join countries as settings on languages.country_id = settings.id
 	
 	public function getSortOptions($model,$setExtra = 0)
 	{
+		$SortOptions = array();
 		foreach($model as $M)
 		{
 			$increment = 0;
@@ -584,6 +748,7 @@ left join countries as settings on languages.country_id = settings.id
 			$Product = $this->saveProductProperties($id);
 			$this->saveProductInformation($Product);
 			$this->saveProductPrice($Product);
+			$this->saveProductAttachments($Product);
 	
 			// redirect
 			Session::flash('message', 'Successfully updated Product!');

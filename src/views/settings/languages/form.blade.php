@@ -40,7 +40,7 @@
               </div>
                                             
               <div class="form-group">
-                {{ Form::label('language', 'Language (lower-case two-letter codes as defined by ISO-639)') }}
+                {{ Form::label('language', 'Language (lower-case two-letter codes as defined by ISO-639 - RFC 3066)') }}
                 {{ Form::text('language', Input::old('language'), array('class' => 'form-control')) }}
               </div>
                                             

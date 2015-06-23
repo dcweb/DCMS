@@ -1,9 +1,10 @@
 <?php
 
 namespace Dcweb\Dcms\Models\Articles;
-use Eloquent;
 
-	class Article extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+
+	class Article extends EloquentDefaults
 	{
 		protected $connection = 'project';
 		

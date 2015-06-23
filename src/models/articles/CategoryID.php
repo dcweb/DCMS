@@ -1,9 +1,10 @@
 <?php
 
 namespace Dcweb\Dcms\Models\Articles;
-use Eloquent;
 
-	class CategoryID extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+
+	class CategoryID extends EloquentDefaults
 	{
 		protected $table  = "articles_categories";
 		

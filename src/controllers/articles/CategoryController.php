@@ -40,13 +40,13 @@ class CategoryController extends BaseController {
 													->table('articles_categories')
 													->select(
 																	'articles_categories.id',
-																	'articles_categories_detail.title', 
-																	'articles_categories_detail.id as catid' ,
+																	'articles_categories_language.title', 
+																	'articles_categories_language.id as catid' ,
 																	(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 																	
 																)
-													->join('articles_categories_detail','articles_categories_detail.article_category_id','=','articles_categories.id')	
-													->leftJoin('languages','articles_categories_detail.language_id','=','languages.id')
+													->join('articles_categories_language','articles_categories_language.article_category_id','=','articles_categories.id')	
+													->leftJoin('languages','articles_categories_language.language_id','=','languages.id')
 									)
 								->showColumns('title','country')
 								->addColumn('edit',function($model){return '<form method="POST" action="/admin/articles/categories/'.$model->catid.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
@@ -145,15 +145,15 @@ class CategoryController extends BaseController {
 		//	get the category
 		$category = CategoryID::find($id);
 			
-	 $languages = DB::connection("project")->select('SELECT languages.id, language, country, language_name, articles_categories_detail.*
+	 $languages = DB::connection("project")->select('SELECT languages.id, language, country, language_name, articles_categories_language.*
 			FROM articles_categories
-			LEFT JOIN articles_categories_detail on articles_categories.id = articles_categories_detail.article_category_id
-			LEFT JOIN languages on articles_categories_detail.language_id = languages.id
+			LEFT JOIN articles_categories_language on articles_categories.id = articles_categories_language.article_category_id
+			LEFT JOIN languages on articles_categories_language.language_id = languages.id
 			WHERE  languages.id is not null AND  articles_categories.id= ?
 			UNION
 			SELECT languages.id , language, country, language_name, \'\' , \'\' , languages.id , \'\' , \'\' , \'\' , \'\' , \'\' , \'\' 
 			FROM languages 
-			WHERE id NOT IN (SELECT language_id FROM articles_categories_detail WHERE article_category_id = ?) ORDER BY 1
+			WHERE id NOT IN (SELECT language_id FROM articles_categories_language WHERE article_category_id = ?) ORDER BY 1
 			', array($id,$id));
 
 		return View::make('dcms::articles/categories/form')
@@ -229,6 +229,34 @@ class CategoryController extends BaseController {
 	}
 
 
+	
+	public function replicateById($id = null, $overwriteSettings = array())
+	{
+		$newCategory = Category::find($id)->replicate();
+		if(count($overwriteSettings)>0)
+		{
+			foreach($overwriteSettings as $key => $value)
+			{
+				$newCategory->$key = $value;
+			}
+		}
+		$newCategory->save();
+		return $newCategory;
+	}
+	
+	public function replicateForNewLanguage($overwriteSettings = array())
+	{
+		$Categories = Category::where("language_id","=",1)->get(); //language_id 1 is fixed since this is to be taken as the default!!
+		if(!is_null($Categories) && count($Categories)>0)
+		{
+			foreach($Categories as $M)
+			{
+				$this->replicateById($M->id,$overwriteSettings);
+			}
+	//		$this->generateCategoryTree();
+		}
+	}
+	
 	/**
 	 * Remove the specified resource from storage.
 	 *

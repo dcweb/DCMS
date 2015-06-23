@@ -25,14 +25,25 @@
 
  {{ Datatable::table()
     ->setId('datatable')
+    ->addColumn('Created')
     ->addColumn('Subject')
+    ->addColumn('Country')
     ->addColumn('Language')
 		->addColumn('List')
 		->addColumn('Default date')
+		->addColumn('Send count')
 		->addColumn('')
     ->setUrl( URL::to('admin/newsletters/api/table'))
     ->setOptions(array(
         'pageLength' => 50,
+        'order'=>array(0,'desc'),
+        'columnDefs'=>array(
+            array(
+                "targets"=> array(0),
+                "visible"=> false
+            )
+        )
+        
         ))
     ->render() }}
 

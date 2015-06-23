@@ -1,9 +1,9 @@
 <?php
 namespace Dcweb\Dcms\Models\Languages;
 
-use Eloquent;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-	class Language extends Eloquent
+	class Language extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "languages";

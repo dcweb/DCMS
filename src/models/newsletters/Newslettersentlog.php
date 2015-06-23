@@ -2,10 +2,10 @@
 
 namespace Dcweb\Dcms\Models\Newsletters;
 
-use Eloquent;
-	class NewsletterSentLog extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+	class NewsletterSentLog extends EloquentDefaults
 	{
 		protected $connection = 'project';
-	  protected $table  = "newsletters_sentlog";
+	  protected $table  = "newsletters_sentlog";		
 	}
 	

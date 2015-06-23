@@ -1,11 +1,10 @@
 <?php
 namespace Dcweb\Dcms\Models\Taxes;
+use Dcweb\Dcms\Models\EloquentDefaults;
 
-use Eloquent;
-
-	class Tax extends Eloquent
+	class Tax extends EloquentDefaults
 	{
 		protected $connection = 'project';
-	  protected $table  = "tax_class";
+	  protected $table  = "products_price_tax";
 	}
 	

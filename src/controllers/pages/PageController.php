@@ -194,15 +194,15 @@ class PageController extends BaseController {
 			$page = Page::find($id);
 		
 		 	$languages = DB::connection("project")->select('
-													SELECT language_id, languages.language, languages.country, languages.language_name, pages.parent_id, pages_detail.id, page_id, title,  body 
-													FROM pages_detail
-													LEFT JOIN languages on languages.id = pages_detail.language_id
-													LEFT JOIN pages on pages.id = pages_detail.page_id
+													SELECT language_id, languages.language, languages.country, languages.language_name, pages.parent_id, pages_language.id, page_id, title,  body 
+													FROM pages_language
+													LEFT JOIN languages on languages.id = pages_language.language_id
+													LEFT JOIN pages on pages.id = pages_language.page_id
 													WHERE  languages.id is not null AND  page_id = ?
 													UNION
 													SELECT languages.id , language, country, language_name, \'\' , \'\' ,  \'\' , \'\' , \'\' 
 													FROM languages 
-													WHERE id NOT IN (SELECT language_id FROM pages_detail WHERE page_id = ?) ORDER BY 1
+													WHERE id NOT IN (SELECT language_id FROM pages_language WHERE page_id = ?) ORDER BY 1
 													', array($id,$id));
 
 			// show the edit form and pass the nerd
@@ -281,7 +281,7 @@ class PageController extends BaseController {
 			$this->generatePageTree();
 			
 			// redirect
-			Session::flash('message', 'Successfully updated article!');
+			Session::flash('message', 'Successfully updated page!');
 			return Redirect::to('admin/pages');
 		}
 	}

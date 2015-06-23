@@ -89,12 +89,16 @@
                 {{ Form::text('language', null, array('class' => 'form-control')); }}
               </div>
   
-              <div class="form-group">
-                {{ Form::label('newsletter', 'Newsletter') }}
-                {{ Form::radio('newsletter', '0', null, array('class' => 'form-control')); }} No
-                {{ Form::radio('newsletter', '1', (is_null($Subscriber->newsletter)?true:null), array('class' => 'form-control')); }} Yes
+              <div class="form-group">             
+                {{ Form::label('', 'Newsletter') }}
+                <div class="radio">
+	                <label>{{ Form::checkbox('newsletter', '1', true); }} Subscribed</label>
+                </div>
+                <div class="radio">
+	                <label>{{ Form::checkbox('bounced', '1', false, array('disabled' => 'disabled')); }} Undeliverable</label>
+                </div>
               </div>
-  
+
             </div>
           </div>
           <div class="col-md-12">		

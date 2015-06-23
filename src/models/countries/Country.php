@@ -1,9 +1,10 @@
 <?php
 
 namespace Dcweb\Dcms\Models\Countries;
-use Eloquent;
 
-	class Country extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+
+	class Country extends EloquentDefaults
 	{
 		protected $connection = 'project';
 		protected $table = "countries";

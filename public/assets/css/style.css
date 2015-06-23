@@ -1,93 +1,3 @@
-/*
-html5doctor.com Reset Stylesheet v1.6.1
-Last Updated: 2010-09-17
-Author: Richard Clark - http://richclarkdesign.com
-*/
-/*
-kleine wijziging in de assets... moet lukken v0.6.2
-*/
-html, body, div, span, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-abbr, address, cite, code,
-del, dfn, em, img, ins, kbd, q, samp,
-small, strong, sub, sup, var,
-b, i,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section, summary,
-time, mark, audio, video {
-    margin:0;
-    padding:0;
-    border:0;
-    outline:0;
-    font-size:100%;
-    vertical-align:baseline;
-    background:transparent;
-}
-body {
-    line-height:1;
-}
-article,aside,details,figcaption,figure,
-footer,header,hgroup,menu,nav,section {
-    display:block;
-}
-nav ul {
-    list-style:none;
-}
-blockquote, q {
-    quotes:none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-    content:'';
-    content:none;
-}
-a {
-    margin:0;
-    padding:0;
-    font-size:100%;
-    vertical-align:baseline;
-    background:transparent;
-}
-/* change colours to suit your needs */
-ins {
-    background-color:#ff9;
-    color:#000;
-    text-decoration:none;
-}
-/* change colours to suit your needs */
-mark {
-    background-color:#ff9;
-    color:#000;
-    font-style:italic;
-    font-weight:bold;
-}
-del {
-    text-decoration: line-through;
-}
-abbr[title], dfn[title] {
-    border-bottom:1px dotted;
-    cursor:help;
-}
-table {
-    border-collapse:collapse;
-    border-spacing:0;
-}
-/* change border colour to suit your needs */
-hr {
-    display:block;
-    height:1px;
-    border:0;
-    border-top:1px solid #cccccc;
-    margin:1em 0;
-    padding:0;
-}
-input, select {
-    vertical-align:middle;
-}
-
 /* Clear Floated Elements */
 .clear {
   clear: both;
@@ -162,7 +72,7 @@ hr {
 }
 ul {
 	list-style-position: outside;
-	margin-left: 15px;
+	margin-left: 0px;
 	margin-bottom: 1em;
 }
 table {
@@ -193,6 +103,11 @@ body {
     color: #fff;
     padding-left: 10px;
     padding-right: 25px;
+}
+@media print {    
+.navbar {
+		display: none !important;
+}
 }
 .navbar-header {
 		width: 200px;
@@ -227,7 +142,11 @@ body {
     z-index: 1000;
 		width: 210px;
 }
-
+@media print {    
+.sidebar {
+		display: none !important;
+}
+}
 .nav-sidebar {
     margin-bottom: 20px;
     margin-left: -20px;
@@ -367,6 +286,11 @@ body {
 .sidebar-collapsed .main {
 		margin-left: 55px;
 }
+@media print {    
+.main {
+		margin-left: 0 !important;
+}
+}
 .main-header {
     background: none repeat scroll 0 0 #ffffff;
     border-bottom: 1px solid #e6e6e6;
@@ -386,11 +310,130 @@ body {
     border-radius: 3px;
     border-right: 1px solid #e6e6e6;
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.04);
-    margin-bottom: 40px;
     padding: 20px;
+    margin-bottom: 30px;
 }
 .main-content-tab {
+    margin-bottom: 30px;
 }
+
+/**** DASHBOARD ****/
+.succes-color {
+	color: #428bca;
+}
+.warning-color {
+	color: #FF9400;
+}
+.info-color{
+	color: #FFC000;
+}
+.default-color{
+ color: #0B5FA5;
+}
+/*540EAD - FFE900*/
+.panel {
+	background: none repeat scroll 0 0 #fff;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.04);
+	margin-bottom: 20px;
+}
+.panel-body {
+	padding: 15px;
+}
+.panel-solid {
+	background: #428bca;
+}
+.panel-general span {
+	color: #ccc;
+	font-weight: bold;
+}
+.panel-heading {
+	background: none repeat scroll 0 0 #fff;
+  border-color: #eff2f7;
+  color: #767676;
+  padding: 14px 10px;
+  text-transform: uppercase;
+}
+.panel-heading h3 {
+	margin-bottom: 0;
+  margin-top: 0;
+	padding-bottom: 0;
+}
+p.top23 {
+	margin-top: 23px;
+}
+.panel .total {
+	display: block;
+	font-size: 2em;
+	line-height: 1.6em;
+	font-weight: 300;
+	color: #222;
+}
+.panel .total .percentage {
+	color: #ccc;
+	font-size: 0.6em;
+	line-height: 1.6em;
+}
+.panel .title {
+	display: block;
+  font-size: 1.2em;
+	line-height: 1em;
+	color: #222;
+	font-weight: bold;
+}
+.panel-solid .total, .panel-solid .total .percentage, .panel-solid .title {
+	color: #fff;
+}
+@media print {    
+.panel-solid .total, .panel-solid .total .percentage, .panel-solid .title {
+	color: inherit !important;
+}
+}
+.chart {
+  height: 207px;
+}
+.chart.large {
+  height: auto;
+}
+.chart ul {
+	list-style: outside none none;
+	margin: 0;
+	padding: 0;
+}
+.chart ul li {
+	font-size: 0.8em;
+}
+.chart ul li span{
+  font-size: 1.4em;
+}
+.chart ul li span span {
+	color: #ccc;
+	font-size: 0.8em;
+	line-height: 1.6em;
+}
+.chart ul li i {
+	font-size: 0.625em;
+	margin: 0 5px 0 0;
+	vertical-align: middle;
+}
+#doughnut-canvas-holder {
+	max-width: 180px;
+	min-width: 80px;
+	margin: 0 auto;
+}
+.progress {
+	box-shadow: none;
+}
+.progress-bar-success {
+  background-color: #428bca;
+}
+.progress-bar-warning {
+  background-color: #ff9400;
+}
+
+
+
 
 /**** TABS ****/
 
@@ -419,7 +462,6 @@ body {
     border-right: 1px solid #e6e6e6;
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.04);
     padding: 20px;
-    margin-bottom: 40px;
 }
 
 .main-content-tab > .nav-tabs {
@@ -470,6 +512,11 @@ body {
     margin-bottom: 0;
     padding: 6px 0;
 }
+@media print {    
+.breadcrumb {
+		display: none !important;
+}
+}
 
 /**** BUTTONS ****/
 
@@ -483,21 +530,30 @@ body {
 
 /**** DATATABLES ****/
 
-table.dataTable {
+table.dataTable, #timeline table {
     border-collapse: collapse !important;
 		width: 100% !important;
 }
-table.dataTable > tbody > tr:nth-child(2n+1) > td, table.dataTable > tbody > tr:nth-child(2n+1) > th {
+#timeline table {
+  border: 1px solid #ddd;
+}
+#timeline table tr {
+	background-color: #fff;
+}
+#timeline table th, #timeline table td {
+	border: 1px solid #ddd;
+}
+table.dataTable > tbody > tr:nth-child(2n+1) > td, table.dataTable > tbody > tr:nth-child(2n+1) > th, #timeline table > tbody > tr:nth-child(2n+1), #timeline table > tbody > tr:nth-child(2n+1){
     background-color: #f9f9f9;
 }
-table.dataTable thead th, table.dataTable thead td {
+table.dataTable thead th, table.dataTable thead td, #timeline table thead th, #timeline table thead td {
     border-bottom: #ccc solid 1px !important;
     padding-bottom: 10px;
     padding-left: 10px !important;
     padding-right: 10px !important;
     padding-top: 10px;
 }
-table.dataTable tbody th, table.dataTable tbody td {
+table.dataTable tbody th, table.dataTable tbody td, #timeline table tbody th, #timeline table tbody td {
     padding-bottom: 6px !important;
     padding-left: 10px;
     padding-right: 10px;
@@ -515,6 +571,9 @@ table.dataTable thead th:last-child, table.dataTable thead td:last-child {
 }
 .dataTables_filter input {
 	width: 75% !important;
+}
+table.table-bordered tbody .ui-sortable-helper td {
+    border: #ccc solid 1px !important;
 }
 
 
@@ -551,7 +610,6 @@ label {
     margin-top: 0 !important;
     padding-bottom: 6px;
     padding-top: 6px;
-		border-radius: 0;
 }
 
 /**** FOOTER ****/

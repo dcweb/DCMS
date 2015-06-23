@@ -34,14 +34,14 @@ class TaxController extends BaseController {
 	{
 		return Datatable::Query(
 									DB::connection('project')
-											->table('tax_class')
+											->table('products_price_tax')
 											->select(
-														'tax_class.id' ,
-														'tax_class.tax_class' 
+														'products_price_tax.id' ,
+														'products_price_tax.tax' 
 													)
 		)
 		
-						->showColumns('tax_class')
+						->showColumns('tax')
 						->addColumn('edit',function($model){return '<form class="pull-right"> <a class="btn btn-xs btn-default" href="/admin/settings/taxes/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a></form>';})
 						->searchColumns('language_name')
 						->make();
@@ -82,7 +82,7 @@ class TaxController extends BaseController {
 			$input = Input::get();
 			
 			$Tax = new Tax;
-			$Tax->tax_class= $input['tax'];
+			$Tax->tax= $input['tax'];
 			$Tax->save();
 
 			// redirect
@@ -133,7 +133,7 @@ class TaxController extends BaseController {
 			$input = Input::get();
 			
 			$Tax = new Tax;
-			$Tax->tax_class= $input['tax'];
+			$Tax->tax= $input['tax'];
 			$Tax->save();
 			
 			// redirect
@@ -141,7 +141,8 @@ class TaxController extends BaseController {
 			return Redirect::to('admin/settings/taxes');
 		}
 	}
-
+	
+	
 	/**
 	 * Remove the specified resource from storage.
 	 *

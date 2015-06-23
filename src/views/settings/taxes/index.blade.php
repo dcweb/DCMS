@@ -26,7 +26,7 @@
 
  {{ Datatable::table()
     ->setId('datatable')
-    ->addColumn('Tax_class')
+    ->addColumn('tax')
 		->addColumn('')
     ->setUrl(route('admin/settings/taxes/api/table'))
     ->setOptions(array(

@@ -21,7 +21,7 @@
       <li><a href="/"><b>Visit website</b></a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-      <li class="active"><a href="{{ URL::route('admin/users/profile') }}">Logged in as <b>{{ Auth::dcms()->user()->username }}</b></a></li>
+      <li class="active"><a href="{{ URL::route('admin/profile') }}">Logged in as <b>{{ Auth::dcms()->user()->username }}</b></a></li>
       <li><a href="{{ URL::route('admin/users/logout') }}"><i class="fa fa-sign-out"></i> Logout</a></li>
     </ul>
   </div>

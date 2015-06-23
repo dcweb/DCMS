@@ -32,6 +32,7 @@
                   <li class="active"><a href="#data" role="tab" data-toggle="tab">Data</a></li>
                   <li><a href="#information" role="tab" data-toggle="tab">Information</a></li>
                   <li><a href="#price" role="tab" data-toggle="tab">Price</a></li>
+                  <li><a href="#attachments" role="tab" data-toggle="tab">Attachments</a></li>
                 </ul>
         
               	<div class="tab-content">
@@ -75,8 +76,8 @@
                       </div>
                       <div class="col-sm-2">
                         <div class="form-group">
-                          {{ Form::label('volume_unit_class', 'Unit') }}
-                          {{ Form::select('volume_unit_class', $volumeclasses, Input::old('volume_unit_class'), array('class' => 'form-control')); }}
+                          {{ Form::label('volume_unit_id', 'Unit') }}
+                          {{ Form::select('volume_unit_id', $volumeclasses, Input::old('volume_unit_id'), array('class' => 'form-control')); }}
                         </div>
                       </div>
                     </div>
@@ -144,6 +145,33 @@
       						</table>
 									<!-- #price -->        
                 </div>
+                
+                
+        
+        					<div id="attachments" class="tab-pane">
+										<!-- #price -->        
+                    <table class="table table-bordered table-striped">
+                      <thead>
+                        <tr>
+                          <th>language-COUNTRY (RFC 3066)</th>
+                          <th>File</th>
+                          <th>Filename</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      
+                      @if(isset($rowAttachments))
+                      {{ $rowAttachments }}
+                      @endif
+                      
+                    <tfoot>
+                      <tr>
+                        <td colspan="5"><a class="btn btn-default pull-right add-table-row" href=""><i class="fa fa-plus"></i></a></td>
+                      </tr>
+                    </tfoot>
+      						</table>
+									<!-- #price -->        
+                </div>
   
     							{{ Form::submit('Save', array('class' => 'btn btn-primary')) }}
    							 	<a href="{{ URL::previous() }}" class="btn btn-default">Cancel</a>
@@ -186,11 +214,12 @@ $(document).ready(function() {
 		BrowseServer( 'Images:/', returnid);
 	})
 	//CKFinder 	
+	/*
 	$(".browse-server-files").click(function() {
 		var returnid = $(this).attr("id").replace("browse_","") ;
 		BrowseServer( 'Files:/', returnid);
 	})
-
+*/
 	//Bootstrap Tabs
 	$(".tab-container .nav-tabs a").click(function (e) {
 		e.preventDefault();
@@ -207,8 +236,12 @@ $(document).ready(function() {
 		},
 		select: function( event, ui ) {
 			$(this).val( ui.item.label );
-			$(this).closest(".tab-pane").find("input[id^='information_id']").val( ui.item.id );
-			$(this).closest(".tab-pane").find("textarea[id^='information_description']").val( ui.item.description );
+			
+			$x = $(this);
+			$.each(ui.item, function(i,v){
+					$x.closest(".tab-pane").find("[id^='information_"+i+"']").val( v );
+				}); //end of each function
+				
 			return false;
 		},
 		minLength: 3,
@@ -236,8 +269,19 @@ $(document).ready(function() {
 		});
 
 		deltablerow(table.find('.delete-table-row'));
+		browsetablerow(table.find('.browse-server-files'));
+
+		function browsetablerow(e) {
+			console.log("gevonden");
+			e.click (function() {
+				alert('hoppa');
+				var returnid = $(this).attr("id").replace("browse_","");
+				BrowseServer( 'Files:/', returnid);
+			});
+		}
 
 		function deltablerow(e) {
+	//		console.log("delete gevonden");
 			e.click (function() {
 				$(this).closest("tr").remove();
 				if (!table.find('tbody tr').length) table.find('tbody').remove();
@@ -246,8 +290,17 @@ $(document).ready(function() {
 		}
 
 	}; 
+	
+	$("body").on("click",".browse-server-files", function(){
+		var returnid = $(this).attr("id").replace("browse_","") ;
+		BrowseServer( 'Files:/', returnid);
+		});
 	$("#price table").addtablerow({
-		source: "{{ URL::to('admin/products/api/tablerow?data=price') }}"
+		source: "{{ URL::to('admin/products/api/tablerow?data=price') }}" //generate the row with the dropdown fields/empty boxes/etc.
+	});
+	
+	$("#attachments table").addtablerow({
+		source: "{{ URL::to('admin/products/api/tablerow?data=attachments') }}" //generate the row with the dropdown fields/empty boxes/etc.
 	});
 
 });

@@ -8,7 +8,7 @@
         <li><a href="{{ URL::to('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
         <li><a href="{{ URL::to('admin/newsletters') }}"><i class="fa fa-newspaper-o"></i> Newsletters</a></li>
         <li class="active"><i class="fa fa-paper-plane-o"></i> Send</li>
-        
+        <li class="active">{{$Newsletter->campaign->subject}}</li>
       </ol>
     </div>
 
@@ -40,15 +40,15 @@
                   <div class="form-group">
                     {{ Form::label('list', 'List') }}
                     <div class="input-group">
-                      <span class="input-group-addon">{{ Form::radio('select_list', 'list') }}</span>
-                    	{{ Form::select('sent_list', array_merge(array(0=>'- None -'),$aLists), $Newsletter->default_list, array('class' => 'form-control', 'id'=>'sent_list')); }}
+                      <span class="input-group-addon">{{ Form::radio('select_list', 'list',false,array("class"=>"radiohelper_select_list")) }}</span>
+                    	{{ Form::select('sent_list',  $aLists , $Newsletter->default_list, array('class' => 'form-control', 'id'=>'sent_list')); }}
                     </div>
                   </div>
                       
                   <div class="form-group">
                     {{ Form::label('manual_list', 'Manual List') }}
                     <div class="input-group">
-                      <span class="input-group-addon">{{ Form::radio('select_list', 'manual') }}</span>
+                      <span class="input-group-addon">{{ Form::radio('select_list', 'manual',false,array("class"=>"radiohelper_select_list")) }}</span>
                       {{ Form::text('manual_list', '', array('class' => 'form-control')) }}
                     </div>
                   </div>
@@ -165,14 +165,45 @@
 <script type="text/javascript">
 $(document).ready(function() {
 
+	var addedGoogleAnalyticsCampaign = ""; 
+	var allowGoogleAnalyticsCampaign = false;
+
 	//DateTimePicker https://github.com/tarruda/bootstrap-datetimepicker
 	$('#datetimepicker').datetimepicker({
 		startDate: new Date()
 	});
 	
+	
 	$('#sent_list').change(function(){
-		$('#google_analytics_campaign').val($(this).find(":selected").text() + ' - ' + $('#google_analytics_campaign').val())  ;
+		removeGoogleAnalyticsCampaign();
+		setGoogleAnalyticsCampaign();
 	})
+	
+	$(".radiohelper_select_list").change(function(){
+		if($(this).val() == "list")
+		{
+			allowGoogleAnalyticsCampaign = true;
+			setGoogleAnalyticsCampaign();
+		}else{
+			allowGoogleAnalyticsCampaign = false;
+			removeGoogleAnalyticsCampaign();
+		}
+	});
+	
+	function setGoogleAnalyticsCampaign()
+	{
+		if(allowGoogleAnalyticsCampaign == true)
+		{
+			addedGoogleAnalyticsCampaign = $('#sent_list').find(":selected").text() + ' - ';
+			$('#google_analytics_campaign').val(addedGoogleAnalyticsCampaign + $('#google_analytics_campaign').val())  ;
+		}
+	}
+	
+	function removeGoogleAnalyticsCampaign()
+	{
+		$('#google_analytics_campaign').val($('#google_analytics_campaign').val().replace(addedGoogleAnalyticsCampaign,""))  ;
+	}
+	
 	
 });
 </script>

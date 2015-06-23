@@ -2,8 +2,8 @@
 
 namespace Dcweb\Dcms\Models\Subscribers;
 
-use Eloquent;
-	class Lists extends Eloquent
+use Dcweb\Dcms\Models\EloquentDefaults;
+	class Lists extends EloquentDefaults
 	{
 		protected $connection = 'project';
 	  protected $table  = "subscribers_lists";

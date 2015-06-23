@@ -13,7 +13,8 @@
 
 
 Route::any("admin/newsletters/monitortransaction", array('as'=>'monitortransaction', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\TransactionController@monitor')); //used as webhook return path in mandrill 
-Route::any("unsubscribe/{ID?}", array('as'=>'unsubscribe', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\TransactionController@unsubscribe')); //used in the {{unsub}} tag of mandrill
+Route::any("unsubscribe/{ID?}", array('as'=>'newsletter/unsubscribe', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\TransactionController@unsubscribe')); //used in the {{unsub}} tag of mandrill
+Route::any("newsletter/{ID}/{CRYPTID?}", array('as'=>'newsletter/viewonline', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\ViewController@newsletter')); //used in the {{unsub}} tag of mandrill
 
 Route::group( array("prefix" => "admin"), function() {
 
@@ -53,8 +54,18 @@ Route::group( array("prefix" => "admin"), function() {
 		//DASHBOARD - CMS HOME
 		Route::any("dashboard", array( "as" => "admin/dashboard", "uses" => "Dcweb\Dcms\Controllers\Dashboard\DashboardController@dashboard"));
 
+		//USERS
+		Route::group(array("before"=>"admin.dcms"), function() {
+			Route::resource('users','Dcweb\Dcms\Controllers\Users\UserController');		
+			Route::any('users/api/table', array('as'=>'admin/users/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Users\UserController@getDatatable'));
+		});
+
+		//PROFILE
+		Route::any("profile", array( "as" => "admin/profile", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@profile"));
+		Route::any("profile/edit", array( "as" => "admin/profile/edit", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@updateProfile"));
+		
 		//SETTINGS - SET UP EXTRA LANGUAGES
-		Route::group( array("prefix" => "settings"), function() {
+		Route::group( array("prefix" => "settings","before"=>"admin.dcms"), function() {
 			//COUNTRIES
 			Route::group(array("prefix" => "countries"), function() {
 				Route::any('api/table', array('as'=>'admin/settings/countries/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\CountryController@getDatatable'));
@@ -62,19 +73,19 @@ Route::group( array("prefix" => "admin"), function() {
 			Route::resource('countries','Dcweb\Dcms\Controllers\Settings\CountryController');
 			
 			//LANGUAGES
-			Route::group(array("prefix" => "languages"), function() {
+			Route::group(array("prefix" => "languages","before"=>"admin.dcms"), function() {
 				Route::any('api/table', array('as'=>'admin/settings/languages/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\LanguageController@getDatatable'));
 			});
 			Route::resource('languages','Dcweb\Dcms\Controllers\Settings\LanguageController');
 			
 			//TAXES
-			Route::group(array("prefix" => "taxes"), function() {
+			Route::group(array("prefix" => "taxes","before"=>"admin.dcms"), function() {
 				Route::any('api/table', array('as'=>'admin/settings/taxes/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\TaxController@getDatatable'));
 			});
 			Route::resource('taxes','Dcweb\Dcms\Controllers\Settings\TaxController');
 
 			//VOLUMES
-			Route::group(array("prefix" => "volumes"), function() {
+			Route::group(array("prefix" => "volumes","before"=>"admin.dcms"), function() {
 				Route::any('api/table', array('as'=>'admin/settings/volumes/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Settings\VolumeController@getDatatable'));
 			});
 			Route::resource('volumes','Dcweb\Dcms\Controllers\Settings\VolumeController');
@@ -82,13 +93,10 @@ Route::group( array("prefix" => "admin"), function() {
 		Route::any('settings','Dcweb\Dcms\Controllers\Settings\SettingController@index');
 
 		
-		//PROFILE
-		Route::any("profile", array( "as" => "admin/users/profile", "uses" => "Dcweb\Dcms\Controllers\Users\UserController@profile"));
-		
 		//FILES
 		Route::any("files", array( "as" => "admin/files", "uses" => "Dcweb\Dcms\Controllers\Files\FileController@index"));
 		
-		//Pages
+		//PAGES
 		Route::group( array("prefix" => "pages"), function() {
 			Route::any('api/table', array('as'=>'admin/pages/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Pages\PageController@getDatatable'));
 		});
@@ -113,6 +121,8 @@ Route::group( array("prefix" => "admin"), function() {
 			Route::any("api/table/{table?}/{selected_campaignid?}", array( "as" => "admin/newsletters/api/table", "uses" => "Dcweb\Dcms\Controllers\Newsletters\NewsletterController@getDatatable"));
 			Route::any("api/json", array( "as" => "admin/newsletters/api/json", "uses" => "Dcweb\Dcms\Controllers\Subscribers\ListController@getJsonData"));
 			Route::resource("settings", 'Dcweb\Dcms\Controllers\Newsletters\SettingController');
+			//ANALYSE
+			Route::any("analyse", array('as'=>'admin/newsletters/analyse', 'uses'=>'Dcweb\Dcms\Controllers\Newsletters\TransactionController@analyse'));
 		});
 		Route::resource("newsletters", 'Dcweb\Dcms\Controllers\Newsletters\NewsletterController');
 		
@@ -123,7 +133,8 @@ Route::group( array("prefix" => "admin"), function() {
 			});
 			Route::resource("lists", 'Dcweb\Dcms\Controllers\Subscribers\ListController');
 				
-			Route::any("api/table", array( "as" => "admin/dealers/api/table", "uses" => "Dcweb\Dcms\Controllers\Subscribers\SubscriberController@getDatatable"));		
+			Route::any("list/{listid?}", array( "as" => "admin/subscribers/list", "uses" => "Dcweb\Dcms\Controllers\Subscribers\SubscriberController@index"));		
+			Route::any("api/table/{listid?}", array( "as" => "admin/subscribers/api/table", "uses" => "Dcweb\Dcms\Controllers\Subscribers\SubscriberController@getDatatable"));			
 		});
 		Route::resource("subscribers", 'Dcweb\Dcms\Controllers\Subscribers\SubscriberController');
 		
@@ -163,10 +174,6 @@ Route::group( array("prefix" => "admin"), function() {
 		});
 		Route::resource('products','Dcweb\Dcms\Controllers\Products\ProductController');		
 
-		//USERS
-		Route::group(array("before"=>"admin.dcms"), function() {
-			Route::resource('users','Dcweb\Dcms\Controllers\Users\UserController');		
-			Route::any('users/api/table', array('as'=>'admin/users/api/table', 'uses' => 'Dcweb\Dcms\Controllers\Users\UserController@getDatatable'));
-		});
 	});
+
 });

@@ -22,6 +22,26 @@ use Dcweb\Dcms\Helpers\Helper\SEOHelpers;
 class ArticleController extends BaseController {
 	
 	public $enableArticleToPage = false;
+	public $articleColumnames = array();
+	
+	public function __construct()
+	{
+		$this->articleColumnames = array('sort_id'=>'article_information_sort_id'
+																,'article_category_id'=>'category_id'
+																,'title'=>'title'
+																,'description'=>'description'
+																,'body'=>'body'
+																,'slug'=>'title'
+																,'path'=>'title'
+															);
+
+		// CUSTOM COLUMN NAMES this can change for every project
+		$this->articleColumnames = array_merge(
+																			$this->articleColumnames,
+																			array()
+																			);
+	}
+	
 
 	/**
 	 * Display a listing of the resource.
@@ -42,20 +62,20 @@ class ArticleController extends BaseController {
 											->table('articles')
 											->select(
 														'articles.id', 
-														'articles_detail.title', 
-														'articles_detail.id as detail_id',
+														'articles_language.title', 
+														'articles_language.id as article_language_id',
 														(DB::connection("project")->raw('Concat("<img src=\'/packages/dcweb/dcms/assets/images/flag-",lcase(country),".png\' >") as country'))
 													)
-											->join('articles_detail','articles.id','=','articles_detail.article_id')
-											->leftJoin('languages','articles_detail.language_id', '=' , 'languages.id')
+											->join('articles_language','articles.id','=','articles_language.article_id')
+											->leftJoin('languages','articles_language.language_id', '=' , 'languages.id')
 		)
 		
 						->showColumns('title','country')
-						->addColumn('edit',function($model){return '<form method="POST" action="/admin/articles/'.$model->detail_id.'" accept-charset="UTF-8" class="pull-right"> 
+						->addColumn('edit',function($model){return '<form method="POST" action="/admin/articles/'.$model->article_language_id.'" accept-charset="UTF-8" class="pull-right"> 
 								<input name="_token" type="hidden" value="'.csrf_token().'"> 
 								<input name="_method" type="hidden" value="DELETE">
 								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
-								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->detail_id.'/copy"><i class="fa fa-copy"></i></a>
+								<a class="btn btn-xs btn-default" href="/admin/articles/'.$model->article_language_id.'/copy"><i class="fa fa-copy"></i></a>
 								<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
 							</form>';})
 						->searchColumns('title')
@@ -66,20 +86,20 @@ class ArticleController extends BaseController {
 	{
 		if(is_null($id))
 		{
-			return DB::connection("project")->table("languages")->select((DB::connection("project")->raw("'' as title, NULL as sort_id, (select max(sort_id) from articles_detail where language_id = languages.id) as maxsort, '' as description , '' as body, '' as article_category_id")), "id","id as language_id",  "language","country","language_name")->get();
+			return DB::connection("project")->table("languages")->select((DB::connection("project")->raw("'' as title, NULL as sort_id, (select max(sort_id) from articles_language where language_id = languages.id) as maxsort, '' as description , '' as body, '' as article_category_id")), "id","id as language_id",  "language","country","language_name")->get();
 		}
 		else
 		{
 			return DB::connection("project")->select('
-													SELECT language_id, languages.language, languages.country, languages.language_name, article_category_id, articles_detail.id, article_id, title, sort_id, (select max(sort_id) from articles_detail as X  where X.language_id = articles_detail.language_id) as maxsort,  description, body, date_format(startdate,\'%d-%m-%Y\') as startdate , date_format(enddate,\'%d-%m-%Y\')  as enddate 
-													FROM articles_detail
-													LEFT JOIN languages on languages.id = articles_detail.language_id
-													LEFT JOIN articles on articles.id = articles_detail.article_id
+													SELECT language_id, languages.language, languages.country, languages.language_name, article_category_id, articles_language.id, article_id, title, sort_id, (select max(sort_id) from articles_language as X  where X.language_id = articles_language.language_id) as maxsort,  description, body, date_format(startdate,\'%d-%m-%Y\') as startdate , date_format(enddate,\'%d-%m-%Y\')  as enddate 
+													FROM articles_language
+													LEFT JOIN languages on languages.id = articles_language.language_id
+													LEFT JOIN articles on articles.id = articles_language.article_id
 													WHERE  languages.id is not null AND  article_id = ?
 													UNION
-													SELECT languages.id , language, country, language_name, \'\' , \'\' ,  \'\' , \'\' , NULL as sort_id, (select max(sort_id) from articles_detail where language_id = languages.id) as maxsort, \'\' , \'\'  , \'\' , \'\' 
+													SELECT languages.id , language, country, language_name, \'\' , \'\' ,  \'\' , \'\' , NULL as sort_id, (select max(sort_id) from articles_language where language_id = languages.id) as maxsort, \'\' , \'\'  , \'\' , \'\' 
 													FROM languages 
-													WHERE id NOT IN (SELECT language_id FROM articles_detail WHERE article_id = ?) ORDER BY 1
+													WHERE id NOT IN (SELECT language_id FROM articles_language WHERE article_id = ?) ORDER BY 1
 													', array($id,$id));
 		}
 	}
@@ -164,8 +184,8 @@ class ArticleController extends BaseController {
 	{
 		return DB::connection("project")->select('
 													SELECT article_detail_id, page_id 
-													FROM articles_detail_to_pages 
-													WHERE article_detail_id IN (SELECT id FROM articles_detail WHERE article_id = ?)',array($articleid));
+													FROM articles_language_to_pages 
+													WHERE article_detail_id IN (SELECT id FROM articles_language WHERE article_id = ?)',array($articleid));
 	}
 	
 	public function setPageOptionValues($objselected_pages)
@@ -299,14 +319,14 @@ class ArticleController extends BaseController {
 					if ($newInformation == false && !is_null($Detail->sort_id) && intval($Detail->sort_id)>0) $oldSortID = intval($Detail->sort_id);
 					
 					$Detail->language_id 					= $language_id;
-					$Detail->sort_id		 					= $input["article_information_sort_id"][$language_id];
-					$Detail->article_category_id 	= ($input["category_id"][$language_id]==0?NULL:$input["category_id"][$language_id]);
-					$Detail->title 								= $input["title"][$language_id];
-					$Detail->description 					= $input["description"][$language_id];
-					$Detail->body 								= $input["body"][$language_id];
-				
-					$Detail->url_slug = SEOHelpers::SEOUrl($input["title"][$language_id]); 
-					$Detail->url_path = SEOHelpers::SEOUrl($input["title"][$language_id]); 
+					
+					foreach($this->articleColumnames as $column => $inputname)
+					{
+						if(!in_array($column,array("slug","path")))	$Detail->$column =  $input[$inputname][$language_id]; //Input::get($inputname);
+					}
+					$Detail->article_category_id 	= ($input[$this->articleColumnames["article_category_id"]][$language_id]==0?NULL:$input[$this->articleColumnames["article_category_id"]][$language_id]);
+					$Detail->url_slug = SEOHelpers::SEOUrl($input[$this->articleColumnames["slug"]][$language_id]); 
+					$Detail->url_path = SEOHelpers::SEOUrl($input[$this->articleColumnames["path"]][$language_id]); 
 					
 					$Detail->admin 								=  Auth::dcms()->user()->username;
 					$Detail->save();	

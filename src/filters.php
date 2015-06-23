@@ -77,7 +77,7 @@ Route::filter('guest.dcms', function()
 
 Route::filter('csrf', function()
 {
-	if (Session::token() !== Input::get('_token'))
+	if (stristr(Request::server('HTTP_USER_AGENT'),"mandrill") === false && Session::token() !== Input::get('_token')   )
 	{
 		throw new Illuminate\Session\TokenMismatchException;
 	}
