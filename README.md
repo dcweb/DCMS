@@ -104,5 +104,8 @@ Require this package
 		
 the dealers module needs an extra database 'admin' which holds global content i.e. zipcode of countries etc.
 
+16. CSRF vulnerability
+	http://blog.laravel.com/csrf-vulnerability-in-laravel-4/
+
 ##TO DO
 1. userlogin should go to 'admin' database where rights could be managed
