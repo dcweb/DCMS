@@ -93,7 +93,7 @@ Require this package
 
 12. cmd: php artisan migrate --package="dcweb/dcms" 
 
-13. it may be easier to simply execute the given dcms.sql file to your database, some export function did not set up the seeder correctly
+13. it may be easier to simply execute the given dcms.sql file to your database, some export function did not set up the seeder correctly (foreign keys - stored procedures)
 	cmd: php artisan db:seed --class=DCMSTableSeeder
     - seed the databse with dumy info - this will help you're project launched since some items are needed: 
 
