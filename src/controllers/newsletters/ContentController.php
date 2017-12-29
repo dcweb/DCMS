@@ -144,7 +144,7 @@ class ContentController extends BaseController {
 					$Content->link 	= $input['content_link'][$contentid];
 					$Content->layout= $input['content_layout'][$contentid];
 					//$Content->style = $input['content_style'][$contentid];
-					$Content->admin = Auth::dcms()->user()->username;
+					$Content->admin = Auth::guard('dcms')->user()->username;
 					$Content->save();		
 					
 					$aDontDeleteId[] = $Content->id;

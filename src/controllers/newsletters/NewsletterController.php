@@ -19,7 +19,7 @@ use Session;
 use Validator;
 use Redirect;
 use DB;
-use Datatable;
+use Datatables;
 use Auth;
 use DateTime;
 use Config;
@@ -30,7 +30,7 @@ use DateTimeZone;
 
 
 class NewsletterController extends BaseController {
-	
+
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -38,30 +38,30 @@ class NewsletterController extends BaseController {
 	 */
 	public function index()
 	{
-		// load the view 
+		// load the view
 		return View::make('dcms::newsletters/newsletters/index');
 	}
-	
-	
+
+
 	public function getDatatable($table = null, $selected_campaignid = 0)// or we give the modelid of a certain model and find the details of this model - at this moment we only give the default checked radiobutton
 	{
 		switch ($table) {
 
 				case "campaigns":
-						
+
 							$query = DB::connection('project')
 								->table('newsletters_campaigns')
 								->select(
-									'newsletters_campaigns.id', 
+									'newsletters_campaigns.id',
 									'subject',
 									//'countries.country',
 									//'languages.language',
-									
+
 									(DB::connection("project")->raw(" ucase(countries.country) as country")) ,
 									(DB::connection("project")->raw(" lcase(languages.language) as language")) ,
-									
+									'division',
 									'newsletters_campaigns.updated_at',
-									(DB::connection("project")->raw(" '".$selected_campaignid."' as selected_campaignid")) 
+									(DB::connection("project")->raw(" '".$selected_campaignid."' as selected_campaignid"))
 								)
 								->leftJoin('languages','languages.id','=','newsletters_campaigns.language_id')
 								->leftJoin('countries','countries.id','=','newsletters_campaigns.country_id')
@@ -70,19 +70,17 @@ class NewsletterController extends BaseController {
 								->orderByRaw(' case when newsletters_campaigns.id = '.$selected_campaignid .' then 1 else 0 end desc' )
 								->orderBy('newsletters_campaigns.created_at','desc');
 
-							return Datatable::query($query)
+		        return Datatables::queryBuilder($query)
 								->addColumn('radio', function($model){return '<input type="radio" '.(($model->selected_campaignid == $model->id)?'checked="checked"':'').' name="campaign_id" value="'.$model->id.'" id="RadioGroup_'.$model->id.'" />';})
-								->showColumns('subject','country', 'language', 'updated_at')
 								->addColumn('edit', function($model){ return '<form method="POST" action="/admin/newsletters/campaigns/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
-										<a class="btn btn-xs btn-default" target="_blank" href="'.URL::route('admin/newsletters/campaigns/view', array('id' => $model->id)).'"><i class="fa fa-eye"></i></a>
+										<a class="btn btn-xs btn-default" target="_blank" href="'.URL::route('admin.newsletters.campaigns.view', array('id' => $model->id)).'"><i class="fa fa-eye"></i></a>
+
 										<a class="btn btn-xs btn-default" href="/admin/newsletters/campaigns/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
 										<a class="btn btn-xs btn-default" href="/admin/newsletters/campaigns/'.$model->id.'/copy"><i class="fa fa-copy"></i></a>
 										<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
 									</form>';})
-								->searchColumns('subject')
-								->orderColumns('subject')
-								->make();
-
+		                        ->rawColumns(['radio','edit'])
+		                        ->make(true) ;
 						break;
 
 				case "content":
@@ -90,67 +88,65 @@ class NewsletterController extends BaseController {
 							$query = DB::connection('project')
 								->table('newsletters_content')
 								->select(
-									'id', 
+									'id',
 									'name'
 								)
 								->orderBy('created_at','desc');
 
-							return Datatable::query($query)
-								->showColumns('name')
-								->addColumn('edit', function($model){ return '<form method="POST" action="/admin/newsletters/content/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
-										<a class="btn btn-xs btn-default" target="_blank" href="'.URL::route('admin/newsletters/content/view', array('id' => $model->id)).'"><i class="fa fa-eye"></i></a>
-										<a class="btn btn-xs btn-default" href="/admin/newsletters/content/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
-										<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
-									</form>';})
-								->searchColumns('name')
-								->orderColumns('created_at','desc')
-								->make();
+			        return Datatables::queryBuilder($query)
+									->addColumn('edit', function($model){ return '<form method="POST" action="/admin/newsletters/content/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
+											<a class="btn btn-xs btn-default" target="_blank" href="'.URL::route('admin/newsletters/content/view', array('id' => $model->id)).'"><i class="fa fa-eye"></i></a>
+											<a class="btn btn-xs btn-default" href="/admin/newsletters/content/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
+											<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
+										</form>';})
+			                        ->rawColumns(['edit'])
+									->orderColumns('created_at','desc')
+			                        ->make(true) ;
+
 
 						break;
 
 				default:
 
-						
+			        return Datatables::queryBuilder(DB::connection('project')
+														->table('newsletters')
+														->select(
+															'newsletters.id',
 
-							$query = DB::connection('project')
-								->table('newsletters')
-								->select(
-									'newsletters.created_at',
-									'newsletters.id', 
-									'newsletters_campaigns.subject',/*
-									'countries.country',
-									'languages.language',*/
-									
-									(DB::connection("project")->raw(" ucase(countries.country) as country")) ,
-									(DB::connection("project")->raw(" lcase(languages.language) as language")) ,
-									
-									'subscribers_lists.listname',
-									'subscribers_lists.id as list_id',
-									'newsletters.default_list',
-									DB::connection("project")->raw('date_format(default_date,"%d-%m-%Y") as default_date'),
-									DB::connection("project")->raw('(SELECT sum(count) FROM newsletters_sentlog WHERE list_id IS NOT NULL AND newsletter_id = newsletters.id) as sendcount')
-								)
-								->leftJoin('newsletters_campaigns','newsletters.campaign_id','=','newsletters_campaigns.id')
-								->leftJoin('languages','languages.id','=','newsletters_campaigns.language_id')
-								->leftJoin('countries','countries.id','=','newsletters_campaigns.country_id')
-								->leftJoin('subscribers_lists','default_list','=','subscribers_lists.id');
+															'newsletters_campaigns.subject',
+															'newsletters.created_at',/*
+															'countries.country',
+															'languages.language',*/
 
+															(DB::connection("project")->raw(" ucase(countries.country) as country")) ,
+															(DB::connection("project")->raw(" lcase(languages.language) as language")) ,
 
-							return Datatable::query($query)
-								->showColumns('created_at','subject','country', 'language','listname','default_date','sendcount')
+															'subscribers_lists.listname',
+															'subscribers_lists.id as list_id',
+															'newsletters.default_list',
+															DB::connection("project")->raw('date_format(default_date,"%d-%m-%Y") as default_date'),
+															DB::connection("project")->raw('(SELECT sum(count) FROM newsletters_sentlog WHERE list_id IS NOT NULL AND newsletter_id = newsletters.id) as sendcount')
+														)
+														->leftJoin('newsletters_campaigns','newsletters.campaign_id','=','newsletters_campaigns.id')
+														->leftJoin('languages','languages.id','=','newsletters_campaigns.language_id')
+														->leftJoin('countries','countries.id','=','newsletters_campaigns.country_id')
+														->leftJoin('subscribers_lists','default_list','=','subscribers_lists.id')
+														->orderBy('newsletters.created_at', 'desc')
+													)
 								->addColumn('edit', function($model){ return '<form method="POST" action="/admin/newsletters/'.$model->id.'" accept-charset="UTF-8" class="pull-right"> <input name="_token" type="hidden" value="'.csrf_token().'"> <input name="_method" type="hidden" value="DELETE">
-										<a class="btn btn-xs btn-default" href="/admin/newsletters/'.$model->id.'/send"><i class="fa fa-paper-plane-o"></i></a>
-										<a class="btn btn-xs btn-default" target="_blank" href="'.URL::route('admin/newsletters/view', array('id' => $model->id)).'"><i class="fa fa-eye"></i></a>
-										<a class="btn btn-xs btn-default" href=\'/admin/newsletters/analyse?query=subject:"'.$model->subject.'" AND u_list_name:"'.$model->listname.'" AND u_list_id:'.$model->list_id.'&date_range=30&newsletter_id='.$model->id.'&list_id='.$model->list_id.'\'><i class="fa fa-line-chart"></i></a>
+										<a class="btn btn-xs btn-default" href="'.URL::route('admin.newsletters.send', array('id' => $model->id)).'"><i class="fa fa-paper-plane-o"></i></a>
+										<a class="btn btn-xs btn-default" href="'.URL::route('admin.newsletters.view', array('id' => $model->id)).'" target="_blank"><i class="fa fa-eye"></i></a>
+										<a class="btn btn-xs btn-default" href="'.URL::route('admin.newsletters.viewhtml', array('id' => $model->id)).'" target="_blank"><i class="fa fa-file-text-o"></i></a>
+										'. /*<a class="btn btn-xs btn-default" href=\'/admin/newsletters/analyse?query=subject:"'.$model->subject.'" AND u_list_name:"'.$model->listname.'" AND u_list_id:'.$model->list_id.'&date_range=30&newsletter_id='.$model->id.'&list_id='.$model->list_id.'\'><i class="fa fa-line-chart"></i></a>*/'
+										<a class="btn btn-xs btn-default" href="'.URL::route('admin.newsletters.analyse', array('id' => $model->id)).'"><i class="fa fa-line-chart"></i></a>
 										<a class="btn btn-xs btn-default" href="/admin/newsletters/'.$model->id.'/edit"><i class="fa fa-pencil"></i></a>
-										<a class="btn btn-xs btn-default" href="/admin/newsletters/'.$model->id.'/copy"><i class="fa fa-copy"></i></a>
+										<a class="btn btn-xs btn-default" href="'.URL::route('admin.newsletters.copy', array('id' => $model->id)).'"><i class="fa fa-copy"></i></a>
 										<button class="btn btn-xs btn-default" type="submit" value="Delete this article" onclick="if(!confirm(\'Are you sure to delete this item?\')){return false;};"><i class="fa fa-trash-o"></i></button>
 									</form>';})
-								->searchColumns('subject','listname')
-								//->setOptions('sort', array(1=>"desc"))
-								//->orderColumns('newsletters.created_at','subject','language','listname')
-								->make();
-							break;
+		                        ->rawColumns(['edit'])
+		                        ->make(true) ;
+
+					break;
 		}
 	}
 
@@ -163,7 +159,7 @@ class NewsletterController extends BaseController {
 	public function create()
 	{
 		$Newsletter = new Newsletter();
-		
+
 		$Settings = Settings::find(1);
 		if(!is_null($Settings))
 		{
@@ -171,14 +167,14 @@ class NewsletterController extends BaseController {
 			$Newsletter->from_email = $Settings->from_email;
 			$Newsletter->replyto_email = $Settings->replyto_email;
 		}
-		
+
 		// load the create form (app/views/articles/create.blade.php)
 		return View::make('dcms::newsletters/newsletters/form')
 				->with('Newsletter', $Newsletter)
 				->with('aLists', ListController::getLists("A"));
 	}
-	
-	
+
+
 	private function validateNewsletterForm()
 	{
 		// validate
@@ -186,7 +182,7 @@ class NewsletterController extends BaseController {
 		$rules = array(//'campaign_id' => 'required',
 										'replyto_email' => 'required|email'
 										,'from_email' => 'required|email');
-										
+
 		$validator = Validator::make(Input::all(), $rules);
 
 		// process the login
@@ -200,35 +196,35 @@ class NewsletterController extends BaseController {
 			return true;
 		}
 	}
-	
-	
+
+
 	private function saveNewsletterProperties($newsletterid = null)
 	{
 		$input = Input::get();
-		
+
 		// do check if the given id is existing.
-		if(!is_null($newsletterid) && intval($newsletterid)>0) $Newsletter = Newsletter::find($newsletterid);  
-		if(!isset($Newsletter) || is_null($Newsletter)) $Newsletter = new Newsletter;		
-		
+		if(!is_null($newsletterid) && intval($newsletterid)>0) $Newsletter = Newsletter::find($newsletterid);
+		if(!isset($Newsletter) || is_null($Newsletter)) $Newsletter = new Newsletter;
+
 		$send_at = NULL;
 		if(trim(Input::get("default_date")) != "" )
 		{
 			$date = DateTime::createFromFormat('d-m-Y', Input::get("default_date"), new DateTimeZone('Europe/Berlin'));
 			$send_at = $date->format('Y-m-d H:i:s');
 		}
-		
+
 		if(isset($input["campaign_id"])) 	$Newsletter->campaign_id 	= $input['campaign_id'] ;
 		$Newsletter->from_name 		= $input['from_name'];
 		$Newsletter->from_email 	= $input['from_email'];
 		$Newsletter->replyto_email= $input['replyto_email'];
 		$Newsletter->default_list = $input['default_list'];
 		$Newsletter->default_date = $send_at;
-		$Newsletter->admin 		= Auth::dcms()->user()->username;
-		$Newsletter->save();		
-		
+		$Newsletter->admin 		= Auth::guard('dcms')->user()->username;
+		$Newsletter->save();
+
 		return $Newsletter;
 	}
-	
+
 
 	/**
 	 * Store a newly created resource in storage.
@@ -240,14 +236,14 @@ class NewsletterController extends BaseController {
 		if ($this->validateNewsletterForm() === true)
 		{
 			$Newsletter = $this->saveNewsletterProperties();
-			
+
 			$Contentcontroller = new ContentController();
 			$Contentcontroller->saveContent(null,$Newsletter);
-			
+
 			// redirect
 			Session::flash('message', 'Successfully created newsletter!');
 			return Redirect::to('admin/newsletters');
-			
+
 		}else return  $this->validateNewsletterForm();
 	}
 
@@ -262,18 +258,18 @@ class NewsletterController extends BaseController {
 	{
 			//
 			// get the Newsletter
-			$Newsletter = Newsletter::find($id); 
-			
+			$Newsletter = Newsletter::find($id);
+
 			$Contentcontroller = new ContentController;
 			$ContentForms = $Contentcontroller->getContentForm(Content::where('newsletter_id','=',$id)->orderBy('sort_id','asc')->get());
-		
+
 			// show the edit form and pass the nerd
 			return View::make('dcms::newsletters/newsletters/form')
 				->with('Newsletter', $Newsletter)
 				->with('ContentForms', $ContentForms)
 				->with('aLists', ListController::getLists("A"));
 	}
-	
+
 
 	/**
 	 * Update the specified resource in storage.
@@ -284,20 +280,20 @@ class NewsletterController extends BaseController {
 	public function update($id)
 	{
 		if($this->validateNewsletterForm()===true)
-		{ 
+		{
 			$Newsletter = $this->saveNewsletterProperties($id);
-			
+
 			$Contentcontroller = new ContentController();
 			$Contentcontroller->saveContent(null,$Newsletter);
-	
+
 			// redirect
 			Session::flash('message', 'Successfully updated newsletter!');
 			return Redirect::to('admin/newsletters');
-			
+
 		}else return  $this->validateNewsletterForm();
 	}
-	
-	
+
+
 	/**
 	 * copy the model
 	 *
@@ -307,15 +303,15 @@ class NewsletterController extends BaseController {
 	public function copy($id)
 	{
 		$Newsletter = Newsletter::find($id);
-		
+
 		$CampaignController = new CampaignController();
 	//	$NewCampaignID = $CampaignController->copy($Newsletter->campaign_id,"modelid");
-		
+
 		$NewNewsletter = $Newsletter->replicate();
 	//	$NewNewsletter->campaign_id = $NewCampaignID;
 		$NewNewsletter->created_at = date("Y-m-d H:i:s");
 		$NewNewsletter->save();
-		
+
 		$relatedContent = Content::where("newsletter_id","=",$id)->get();
 		if(count($relatedContent)>0)
 		{
@@ -327,13 +323,13 @@ class NewsletterController extends BaseController {
 				$NewContent->touch();
 			}
 		}
-		
+
 		// redirect
 		Session::flash('message', 'Successfully copied newsletter!');
 		return Redirect::to('admin/newsletters');
 	}
-	
-	
+
+
 	/**
 	 * Remove the specified resource from storage.
 	 *
@@ -344,7 +340,7 @@ class NewsletterController extends BaseController {
 	{
 		Content::where('newsletter_id','=',$id)->delete();
 		Newsletter::destroy($id);
-	
+
 		// redirect
 		Session::flash('message', 'Successfully deleted the newsletter!');
 		return Redirect::to('admin/newsletters');
@@ -354,27 +350,27 @@ class NewsletterController extends BaseController {
 	public function send($id)
 	{
 			// get the Newsletter
-			$Newsletter = Newsletter::find($id); 
-			
+			$Newsletter = Newsletter::find($id);
+
 			$Settings = Settings::find(1);
 			if(is_null($Settings) || (!is_null($Settings) && ( is_null($Settings->api_key) || strlen(trim($Settings->api_key))<=0))  )
 			{
 				Session::flash('message', 'There is no API key given to send emails');
 			}
-			
+
 			if(!is_null($Settings))
 			{
-				$Newsletter->track_opens	= $Settings->track_opens;	
-				$Newsletter->track_clicks	= $Settings->track_clicks;	
-				$Newsletter->inline_css		= $Settings->inline_css	;	
-				$Newsletter->url_strip_qs	= $Settings->url_strip_qs;	
+				$Newsletter->track_opens	= $Settings->track_opens;
+				$Newsletter->track_clicks	= $Settings->track_clicks;
+				$Newsletter->inline_css		= $Settings->inline_css	;
+				$Newsletter->url_strip_qs	= $Settings->url_strip_qs;
 				$Newsletter->signing_domain	= $Settings->signing_domain	;
 				$Newsletter->google_analytics_domains	= $Settings->google_analytics_domains	;
-				
+
 				if(is_null($Settings->google_analytics_campaign) || strlen(trim($Settings->google_analytics_campaign))<=0) $Newsletter->google_analytics_campaign	= $Newsletter->campaign->subject;
 				else 	$Newsletter->google_analytics_campaign	= $Settings->google_analytics_campaign	;
 			}
-			
+
 			// show the edit form and pass the nerd
 			return View::make('dcms::newsletters/newsletters/send')
 				->with('Newsletter', $Newsletter)

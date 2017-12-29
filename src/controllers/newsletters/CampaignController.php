@@ -22,7 +22,7 @@ use Datatable;
 use Auth;
 
 class CampaignController extends BaseController {
-	
+
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -30,10 +30,10 @@ class CampaignController extends BaseController {
 	 */
 	public function index()
 	{
-		// load the view 
+		// load the view
 		return View::make('dcms::newsletters/campaigns/index');
 	}
-	
+
 	public function getLanguages()
 	{
 		$aLanguages = array();
@@ -45,10 +45,10 @@ class CampaignController extends BaseController {
 				$aLanguages[$M->id] = strtolower($M->language);
 			}
 		}
-		
+
 		return $aLanguages;
 	}
-	
+
 	public function getCountries()
 	{
 		$aCountries = array();
@@ -60,10 +60,10 @@ class CampaignController extends BaseController {
 				$aCountries[$M->id] = strtoupper($M->country);
 			}
 		}
-		
+
 		return $aCountries;
 	}
-	
+
 	/**
 	 * Show the form for creating a new resource.
 	 *
@@ -72,15 +72,15 @@ class CampaignController extends BaseController {
 	public function create()
 	{
 		$Newslettercampaign = new Campaign();
-		
+
 		return View::make('dcms::newsletters/campaigns/form')
 				->with('Newslettercampaign', $Newslettercampaign)
 				->with('aLanguages',$this->getLanguages())
 				->with('aCountries',$this->getCountries());
 	}
-	
-	
-	
+
+
+
 	private function validateNewslettercampaignForm()
 	{
 		// validate
@@ -88,7 +88,7 @@ class CampaignController extends BaseController {
 		$rules = array(/*'htmlbody' => 'required|min:1'
 										,'body' => 'required|min:1'
 										,'subject' => 'required|min:1'*/);
-										
+
 		$validator = Validator::make(Input::all(), $rules);
 
 		// process the login
@@ -102,29 +102,30 @@ class CampaignController extends BaseController {
 			return true;
 		}
 	}
-	
-	
+
+
 	private function saveCampaign($campaignid = null)
 	{
 		$input = Input::get();
 
 		// do check if the given id is existing.
-		if(!is_null($campaignid) && intval($campaignid)>0) $Campaign = Campaign::find($campaignid);  
-		if(!isset($Campaign) || is_null($Campaign)) $Campaign = new Campaign;		
-		
+		if(!is_null($campaignid) && intval($campaignid)>0) $Campaign = Campaign::find($campaignid);
+		if(!isset($Campaign) || is_null($Campaign)) $Campaign = new Campaign;
+
 		$Campaign->subject 			= $input['campaign_subject'];
 		$Campaign->country_id 	= $input['campaign_country_id'];
 		$Campaign->language_id 	= $input['campaign_language_id'];
+		$Campaign->division		 	= $input['campaign_division'];
 		$Campaign->wrapper 			= View::make('dcms::newsletters/newsletters/layout');
 		$Campaign->layout 			= $input['campaign_layout'];
 		$Campaign->style				= $input['campaign_style'];
-		$Campaign->admin 				= Auth::dcms()->user()->username;
-		$Campaign->save();		
-		
+		$Campaign->admin 				= Auth::guard('dcms')->user()->username;
+		$Campaign->save();
+
 		return $Campaign;
 	}
-	
-	
+
+
 	/**
 	 * Store a newly created resource in storage.
 	 *
@@ -137,12 +138,12 @@ class CampaignController extends BaseController {
 			$Campaign = $this->saveCampaign();
 			$Contentcontroller = new ContentController();
 			$Contentcontroller->saveContent($Campaign);
-			
+
 			// redirect
 			Session::flash('message', 'Successfully created campaign!');
 			//return Redirect::to('admin/newsletters/campaigns');
 			return Redirect::back();
-			
+
 		}else return  $this->validateNewslettercampaignForm();
 	}
 
@@ -158,10 +159,10 @@ class CampaignController extends BaseController {
 			//
 			// get the Newsletter
 			$Newslettercampaign = Campaign::find($id);
-			
+
 			$Contentcontroller = new ContentController;
 			$ContentForms = $Contentcontroller->getContentForm(Content::where('campaign_id','=',$id)->orderBy('sort_id','asc')->get());
-		
+
 			// show the edit form and pass the nerd
 			return View::make('dcms::newsletters/campaigns/form')
 				->with('Newslettercampaign', $Newslettercampaign)
@@ -180,20 +181,20 @@ class CampaignController extends BaseController {
 	public function update($id)
 	{
 		if($this->validateNewslettercampaignForm()===true)
-		{ 
+		{
 			$Campaign = $this->saveCampaign($id);
 			$Contentcontroller = new ContentController();
 			$Contentcontroller->saveContent($Campaign);
-	
+
 			// redirect
 			Session::flash('message', 'Successfully updated campaign!');
 			//return Redirect::to('admin/newsletters/campaigns');
 			return Redirect::back();
-			
+
 		}else return  $this->validateNewslettercampaignForm();
 	}
-	
-	
+
+
 	/**
 	 * copy the model
 	 *
@@ -206,7 +207,7 @@ class CampaignController extends BaseController {
 		$NewCampaign= Campaign::find($id)->replicate();
 		$NewCampaign->created_at = date("Y-m-d H:i:s");
 		$NewCampaign->save();
-		
+
 		$relatedContent = Content::where("campaign_id","=",$id)->get();
 		if(count($relatedContent)>0)
 		{
@@ -218,7 +219,7 @@ class CampaignController extends BaseController {
 				$NewContent->touch();
 			}
 		}
-		
+
 		if($return == "topage")
 		{
 			// redirect
@@ -242,7 +243,7 @@ class CampaignController extends BaseController {
 	{
 		Content::where('campaign_id','=',$id)->delete();
 		Campaign::destroy($id);
-	
+
 		// redirect
 		Session::flash('message', 'Successfully deleted the campaign!');
 		return Redirect::to('admin/newsletters/campaigns');

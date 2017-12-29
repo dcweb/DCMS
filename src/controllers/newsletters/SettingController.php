@@ -82,7 +82,7 @@ class SettingController extends BaseController {
 		$Settings->signing_domain	= $input['signing_domain'];
 		$Settings->google_analytics_domains	= $input['google_analytics_domains']; //semicolon ; seperated
 		$Settings->google_analytics_campaign	= $input['google_analytics_campaign'];
-		$Settings->admin 		= Auth::dcms()->user()->username;
+		$Settings->admin 		= Auth::guard('dcms')->user()->username;
 		$Settings->save();		
 		
 		return $Settings;
